@@ -1,0 +1,9 @@
+# Tüm metin dosyalarını repoda LF olarak sakla (CI Linux/macOS'ta çalışır)
+* text=auto eol=lf
+
+# İkili dosyalar
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.keystore binary
+*.jks binary

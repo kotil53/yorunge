@@ -1,0 +1,38 @@
+# ── Bağımlılıklar ────────────────────────────────────────────────
+node_modules/
+
+# ── Capacitor: komutla yeniden üretilen her şey ──────────────────
+# www/  -> sync.mjs (yorunge.html'den kopyalanır)
+# android/, ios/  -> `npx cap add` ile üretilir
+capacitor-app/www/
+capacitor-app/android/
+capacitor-app/ios/
+
+# ── Derleme çıktıları ────────────────────────────────────────────
+capacitor-app/**/build/
+capacitor-app/**/.gradle/
+*.apk
+*.aab
+*.ipa
+*.xcarchive
+
+# ── fastlane: App Store metin otomasyonu (geçici çıktılar) ───────
+# metadata/ ve screenshots/ SÜRÜM KONTROLÜNE GİRER (tek doğruluk kaynağı);
+# aşağıdakiler `deliver` çalışınca üretilen geçici dosyalar.
+capacitor-app/fastlane/metadata_live/
+capacitor-app/fastlane/report.xml
+capacitor-app/fastlane/Preview.html
+*.itmsp
+
+# ── İmzalama sırları (asla commit'lenmez) ────────────────────────
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+key.properties
+
+# ── IDE / OS ─────────────────────────────────────────────────────
+.idea/
+.DS_Store
+Thumbs.db
+*.log

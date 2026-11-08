@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow">
+<title>Gizlilik Politikası — Yörünge</title>
+<style>
+  :root {
+    --bg: #f4f6fb; --card: #ffffff; --ink: #1c2333; --muted: #5a6785;
+    --line: #e2e7f1; --accent: #2b7fd6; --head: #0b0f2a;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header { background: var(--head); color: #fff; padding: 40px 20px; }
+  header .wrap { max-width: 780px; margin: 0 auto; }
+  header h1 { margin: 0 0 6px; font-size: 24px; }
+  header p { margin: 0; color: #9aa5c8; font-size: 14px; }
+  main { max-width: 780px; margin: -24px auto 60px; padding: 0 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 26px; box-shadow: 0 6px 24px rgba(20, 30, 60, 0.06);
+  }
+  h2 {
+    font-size: 18px; margin: 32px 0 10px; padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  h2:first-of-type { border-top: 0; padding-top: 0; margin-top: 4px; }
+  p, ul { margin: 0 0 12px; }
+  ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  code { background: #eef1f7; padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+  .lang-toggle { margin: 18px 0 0; font-size: 14px; }
+  .lang-toggle a { font-weight: 600; }
+  hr.sep { border: 0; border-top: 2px dashed var(--line); margin: 44px 0; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 20px 50px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Gizlilik Politikası — Yörünge</h1>
+    <p>Son güncelleme: 9 Kasım 2026</p>
+  </div>
+</header>
+
+<main>
+  <div class="card" id="tr">
+    <p class="lang-toggle"><strong>Türkçe</strong> · <a href="#en">English version below ↓</a></p>
+
+    <p>Bu gizlilik politikası, <strong>kotiliy</strong> ("biz") tarafından geliştirilen
+    <strong>Yörünge</strong> mobil uygulaması ("uygulama") için geçerlidir.
+    Uygulamayı kullanarak bu politikada açıklanan uygulamaları kabul etmiş olursunuz.</p>
+
+    <h2>1. Kısaca</h2>
+    <ul>
+      <li>Hesap açmanız, giriş yapmanız veya e-posta, telefon gibi kişisel bilgi vermeniz gerekmez.</li>
+      <li>Oyun ilerlemeniz ve ayarlarınız <strong>cihazınızda</strong> saklanır.</li>
+      <li><strong>Dünya sıralamasına</strong> katılırsanız yalnızca seçtiğiniz <strong>takma ad</strong>,
+      en iyi puanınız ve ulaştığınız sektör sunucumuza gönderilir ve herkese açık listede görünür.</li>
+      <li>Uygulama <strong>Google AdMob</strong> aracılığıyla reklam gösterir. Reklam ağı,
+      standart reklam verilerini (aşağıda açıklanmıştır) toplar.</li>
+      <li>Başka hiçbir analiz veya izleme aracı kullanılmaz.</li>
+    </ul>
+
+    <h2>2. Cihazınızda saklanan veriler</h2>
+    <p>Aşağıdakiler yerel depolamada (<code>localStorage</code>, <code>yorunge.v1.*</code> anahtarları)
+    tutulur ve dünya sıralaması dışında <strong>cihazınızdan çıkmaz</strong>:</p>
+    <ul>
+      <li>Rekor, yıldız sayısı, en iyi oyunlarınız, açılan sektörler ve kostümler</li>
+      <li>Günlük görevler ve günlük ödül serisi</li>
+      <li>Ses, müzik, titreşim, hatırlatıcı ve dil tercihleri</li>
+    </ul>
+    <p>Uygulamayı kaldırdığınızda bu veriler silinir. Bu verilere biz erişemeyiz.</p>
+
+    <h2>3. Dünya sıralaması</h2>
+    <p>Sıralamaya katılmak isteğe bağlıdır; sıralama ekranında bir takma ad seçtiğinizde başlar.
+    Bu durumda sunucumuza (Supabase altyapısı) şunlar gönderilir:</p>
+    <ul>
+      <li><strong>Takma ad</strong> — 3–16 karakter, sizin seçtiğiniz. Gerçek adınızı kullanmamanızı öneririz.</li>
+      <li><strong>En iyi puan</strong> ve ulaşılan <strong>sektör</strong></li>
+      <li>Cihazda rastgele üretilen bir <strong>oyuncu kimliği</strong> ve gizli anahtarın tek yönlü özeti
+      (kaydınızı yalnızca sizin güncelleyebilmeniz için). Bu kimlik reklam kimliğiniz veya cihaz
+      donanımıyla ilişkili değildir.</li>
+      <li>Son güncelleme zamanı</li>
+    </ul>
+    <p>Takma ad, puan ve sektör, uygulamadaki herkese açık listede diğer oyunculara gösterilir.
+    Uygunsuz takma adlar reddedilir veya silinebilir.</p>
+
+    <h2>4. Bildirimler (yerel hatırlatıcılar)</h2>
+    <p>Uygulama "oyuna geri dön" türünde hatırlatıcılar planlayabilir. Bu bildirimler
+    <strong>tamamen cihazınızda</strong> zamanlanır; sunucudan gönderilmez. Ayarlar'daki
+    <em>Hatırlatıcılar</em> düğmesiyle ya da sistem ayarlarından istediğiniz an kapatabilirsiniz.
+    İzni reddetmeniz oyunun çalışmasını etkilemez.</p>
+
+    <h2>5. Reklamlar — Google AdMob</h2>
+    <p>Uygulama, oyunlar arasında <strong>geçiş reklamı</strong>, menülerde <strong>banner</strong> ve
+    isteğe bağlı olarak (kaldığın yerden devam, kontrol noktası ya da ödülü 2 kat alma karşılığında)
+    <strong>ödüllü reklam</strong> gösterir. Reklamlar Google'ın <strong>Google Mobile Ads (AdMob)</strong>
+    SDK'sı tarafından sunulur.</p>
+    <p>Reklam sunmak ve ölçmek için Google ve iş ortakları şunları toplayabilir/işleyebilir:</p>
+    <ul>
+      <li><strong>Cihaz tanımlayıcıları</strong> — reklam kimliği (Android Advertising ID / iOS IDFA)</li>
+      <li><strong>Yaklaşık konum</strong> — IP adresinden türetilen (şehir/ülke düzeyinde)</li>
+      <li><strong>Cihaz bilgileri</strong> — model, işletim sistemi sürümü, dil, ağ türü</li>
+      <li><strong>Uygulama etkileşimi ve tanılama</strong> — reklam görüntüleme/tıklama, çökme ve performans verileri</li>
+    </ul>
+    <p>Google'ın veri uygulamaları:</p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Gizlilik Politikası</a></li>
+      <li><a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google hizmetlerini kullanan uygulamalardaki verilerin nasıl kullanıldığı</a></li>
+      <li><a href="https://support.google.com/admob/answer/6128543" target="_blank" rel="noopener">AdMob ve kullanıcı gizliliği</a></li>
+    </ul>
+
+    <h2>6. Onay ve seçim hakkınız</h2>
+    <ul>
+      <li><strong>Avrupa Ekonomik Alanı, Birleşik Krallık ve İsviçre</strong> kullanıcılarına ilk açılışta
+      Google'ın onay formu (UMP) gösterilir.</li>
+      <li><strong>iOS</strong> kullanıcılarına Apple'ın "İzleme İzni" (ATT) penceresi gösterilir.
+      İzin vermezseniz kişiselleştirilmemiş reklamlar gösterilir.</li>
+      <li>Reklam kimliğinizi cihaz ayarlarından sıfırlayabilir veya kişiselleştirmeyi kapatabilirsiniz.</li>
+    </ul>
+
+    <h2>7. Çocukların gizliliği</h2>
+    <p>Uygulama 13 yaşın altındaki çocuklara yönelik değildir ve bilerek çocuklardan kişisel veri
+    toplamayız. Böyle bir veriyi fark edersek kaldırırız.</p>
+
+    <h2>8. Veri saklama ve silme</h2>
+    <ul>
+      <li>Cihazdaki oyun verileri, uygulamayı kaldırdığınızda silinir.</li>
+      <li>Sıralama kaydınız, silinmesini isteyene kadar saklanır. Silmek için takma adınızla birlikte
+      aşağıdaki adrese yazmanız yeterlidir.</li>
+      <li>AdMob tarafından toplanan veriler Google'ın saklama politikalarına tabidir.</li>
+    </ul>
+
+    <h2>9. Değişiklikler</h2>
+    <p>Bu politikayı zaman zaman güncelleyebiliriz. Güncellemeler bu sayfada yayınlanır ve
+    üstteki tarih değiştirilir.</p>
+
+    <h2>10. İletişim</h2>
+    <p>Sorularınız ve silme talepleriniz için: <a href="mailto:osmankotil@outlook.com">osmankotil@outlook.com</a></p>
+  </div>
+
+  <hr class="sep">
+
+  <div class="card" id="en">
+    <p class="lang-toggle"><a href="#tr">↑ Türkçe sürüm yukarıda</a> · <strong>English</strong></p>
+
+    <p>This privacy policy applies to the mobile application <strong>Yörünge</strong> ("the app"),
+    developed by <strong>kotiliy</strong> ("we"). By using the app you accept the practices described here.</p>
+
+    <h2>1. In short</h2>
+    <ul>
+      <li>No account, sign-in or personal details such as e-mail or phone number are required.</li>
+      <li>Your game progress and settings are stored <strong>on your device</strong>.</li>
+      <li>If you join the <strong>world leaderboard</strong>, only the <strong>nickname</strong> you choose,
+      your best score and the sector you reached are sent to our server and shown in a public list.</li>
+      <li>The app shows ads through <strong>Google AdMob</strong>, which collects standard advertising data (below).</li>
+      <li>No other analytics or tracking tools are used.</li>
+    </ul>
+
+    <h2>2. Data stored on your device</h2>
+    <p>The following is kept in local storage (<code>localStorage</code>, <code>yorunge.v1.*</code> keys) and,
+    apart from the world leaderboard, <strong>never leaves your device</strong>:</p>
+    <ul>
+      <li>Best score, stars, your top runs, unlocked sectors and skins</li>
+      <li>Daily missions and daily reward streak</li>
+      <li>Sound, music, vibration, reminder and language preferences</li>
+    </ul>
+    <p>This data is deleted when you uninstall the app. We have no access to it.</p>
+
+    <h2>3. World leaderboard</h2>
+    <p>Joining is optional and starts when you pick a nickname on the leaderboard screen. Then the
+    following is sent to our server (Supabase infrastructure):</p>
+    <ul>
+      <li><strong>Nickname</strong> — 3–16 characters, chosen by you. We recommend not using your real name.</li>
+      <li><strong>Best score</strong> and the <strong>sector</strong> reached</li>
+      <li>A randomly generated <strong>player ID</strong> and a one-way hash of a secret key (so that only
+      you can update your entry). This ID is not linked to your advertising ID or device hardware.</li>
+      <li>Time of last update</li>
+    </ul>
+    <p>Nickname, score and sector are shown to other players in the public list. Inappropriate
+    nicknames are rejected or may be removed.</p>
+
+    <h2>4. Notifications (local reminders)</h2>
+    <p>The app can schedule "come back and play" reminders. They are scheduled <strong>entirely on your
+    device</strong> and not sent from a server. Turn them off any time with <em>Reminders</em> in
+    Settings or in your system settings. Declining the permission does not affect gameplay.</p>
+
+    <h2>5. Advertising — Google AdMob</h2>
+    <p>The app shows <strong>interstitial ads</strong> between runs, <strong>banners</strong> in menus and optional
+    <strong>rewarded ads</strong> (to continue a run, restart from a checkpoint or double a reward). Ads are
+    served by Google's <strong>Google Mobile Ads (AdMob)</strong> SDK.</p>
+    <p>To serve and measure ads, Google and its partners may collect/process:</p>
+    <ul>
+      <li><strong>Device identifiers</strong> — advertising ID (Android Advertising ID / iOS IDFA)</li>
+      <li><strong>Approximate location</strong> — derived from IP address (city/country level)</li>
+      <li><strong>Device information</strong> — model, OS version, language, network type</li>
+      <li><strong>App interaction and diagnostics</strong> — ad impressions/clicks, crash and performance data</li>
+    </ul>
+    <p>Google's data practices:</p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
+      <li><a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">How Google uses data from apps that use its services</a></li>
+      <li><a href="https://support.google.com/admob/answer/6128543" target="_blank" rel="noopener">AdMob &amp; user privacy</a></li>
+    </ul>
+
+    <h2>6. Consent and your choices</h2>
+    <ul>
+      <li>Users in the <strong>EEA, the UK and Switzerland</strong> are shown Google's consent form (UMP) on first launch.</li>
+      <li><strong>iOS</strong> users are shown Apple's App Tracking Transparency (ATT) prompt. If you decline,
+      non-personalized ads are shown.</li>
+      <li>You can reset your advertising ID or opt out of personalization in device settings.</li>
+    </ul>
+
+    <h2>7. Children's privacy</h2>
+    <p>The app is not directed to children under 13, and we do not knowingly collect personal data from
+    children. If we learn of such data, we will remove it.</p>
+
+    <h2>8. Data retention and deletion</h2>
+    <ul>
+      <li>Game data on the device is deleted when you uninstall the app.</li>
+      <li>Your leaderboard entry is kept until you ask us to delete it. E-mail us with your nickname.</li>
+      <li>Data collected by AdMob is subject to Google's retention policies.</li>
+    </ul>
+
+    <h2>9. Changes</h2>
+    <p>We may update this policy from time to time. Updates are posted on this page and the date above is revised.</p>
+
+    <h2>10. Contact</h2>
+    <p>Questions and deletion requests: <a href="mailto:osmankotil@outlook.com">osmankotil@outlook.com</a></p>
+  </div>
+</main>
+
+<footer>
+  Yörünge · kotiliy
+</footer>
+</body>
+</html>

@@ -1,0 +1,2689 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0526">
+<title>Yörünge</title>
+<style>
+  /* Tema belirteçleri — uzay oyunu bilerek yalnız koyu temalı; renkler buradan gelir */
+  :root {
+    --bg: #0a0526;
+    --panel: rgba(14, 20, 54, .94);
+    --panel-2: rgba(255, 255, 255, .07);
+    --line: rgba(255, 255, 255, .14);
+    --text: #f2f5ff;
+    --muted: #aab4dc;
+    --accent: #5ef2ff;
+    --accent-ink: #03222b;
+    --gold: #ffd34d;
+    --gold-ink: #2b1d00;
+    --danger: #ff7096;
+    --ok: #4dffa6;
+    --violet: #a77bff;
+    --pink: #ff5dc8;
+    --grad-primary: linear-gradient(135deg, #5ef2ff 0%, #6aa2ff 48%, #b07bff 100%);
+    --grad-gold: linear-gradient(135deg, #fff07a 0%, #ffbe2e 50%, #ff7a45 100%);
+    --grad-brand: linear-gradient(100deg, #ffffff 0%, #5ef2ff 25%, #b07bff 50%, #ff5dc8 75%, #ffd34d 100%);
+    --grad-edge: linear-gradient(135deg, rgba(94, 242, 255, .7), rgba(176, 123, 255, .35) 45%, rgba(255, 93, 200, .6));
+
+    --fs-xs: 12px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 44px;
+    --fs-hero: clamp(44px, 13vw, 68px);
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+    --r-md: 14px; --r-lg: 22px;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --dur: 200ms;
+
+    --st: env(safe-area-inset-top, 0px);
+    --sb: env(safe-area-inset-bottom, 0px);
+    --banner-h: 0px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--fs-md); line-height: 1.4; -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .ic { width: 22px; height: 22px; flex: none; }
+  .gold { color: var(--gold); }
+  .muted { color: var(--muted); }
+
+  #cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  /* ---------- Düğmeler ---------- */
+  .btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+    min-height: 52px; padding: 0 var(--s6); border: 0; border-radius: 999px;
+    font-size: var(--fs-lg); font-weight: 800; letter-spacing: .02em;
+    background: var(--grad-primary); color: #06102a;
+    box-shadow: 0 8px 28px rgba(110, 160, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .5);
+    transition: transform var(--dur) var(--ease), filter var(--dur) var(--ease), opacity var(--dur); }
+  .btn:active { transform: scale(.95); filter: brightness(1.1); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.ghost { background: var(--panel-2); color: var(--text); box-shadow: none; border: 1px solid var(--line); }
+  .btn.gold { background: var(--grad-gold); color: var(--gold-ink); box-shadow: 0 8px 28px rgba(255, 160, 60, .45), inset 0 1px 0 rgba(255, 255, 255, .6); }
+  /* ışık süzülmesi: birincil ve altın düğmelerde ara ara geçer */
+  .btn.xl::after, .btn.gold::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent); transform: skewX(-20deg);
+    animation: shine 3.2s var(--ease) infinite; pointer-events: none; }
+  .btn.sm { min-height: 44px; padding: 0 var(--s5); font-size: var(--fs-md); }
+  .btn.xl { min-height: 64px; padding: 0 56px; font-size: var(--fs-xl); }
+  .btn.block { width: 100%; }
+  .icon-sq { width: 48px; height: 48px; display: grid; place-items: center; border-radius: var(--r-md);
+    border: 1px solid var(--line); background: var(--panel-2); transition: transform var(--dur) var(--ease); }
+  .icon-sq:active { transform: scale(.92); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 var(--s3);
+    border-radius: 999px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line);
+    font-weight: 800; font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
+  .pill .ic { width: 18px; height: 18px; }
+
+  /* ---------- Ekranlar ---------- */
+  .screen { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+    padding: calc(var(--st) + var(--s3)) var(--s4) calc(var(--sb) + var(--banner-h) + var(--s4));
+    background: rgba(16, 8, 48, .66); opacity: 0; visibility: hidden; transform: translateY(10px);
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), visibility 0s linear var(--dur); }
+  .screen.on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .screen.center { align-items: center; justify-content: center; }
+  #home { background: radial-gradient(ellipse 80% 45% at 50% 34%, rgba(18, 8, 56, .9) 0, rgba(18, 8, 56, .7) 55%, rgba(18, 8, 56, .35) 100%),
+                      linear-gradient(180deg, rgba(8, 4, 30, .3), rgba(8, 4, 30, .1) 60%, rgba(8, 4, 30, .85)); }
+  #home .orbit { width: min(52vw, 210px); animation: floatY 5s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255, 120, 90, .45)) drop-shadow(0 0 50px rgba(94, 242, 255, .25)); }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; }
+  .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .orbit { width: min(46vw, 190px); height: auto; filter: drop-shadow(0 0 24px rgba(94, 242, 255, .25)); }
+  .orbit .comet { transform-origin: 100px 100px; animation: spin 3.4s linear infinite; }
+  .brand { margin: var(--s3) 0 0; font-size: var(--fs-hero); font-weight: 900; letter-spacing: .12em; line-height: 1;
+    background: var(--grad-brand); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(176, 123, 255, .45)); animation: shimmer 6s linear infinite; }
+  .tagline { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--fs-md); letter-spacing: .04em; }
+  .cta { display: flex; flex-direction: column; align-items: center; gap: var(--s3); margin-bottom: var(--s5); }
+  .cta .btn { animation: breathe 2.4s var(--ease) infinite; }
+  .hint { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+  .dock { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s2); width: 100%; max-width: 440px; margin: 0 auto; }
+  .dock-btn { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s1);
+    min-height: 68px; border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--panel-2);
+    font-size: var(--fs-xs); font-weight: 700; color: var(--text); transition: transform var(--dur) var(--ease), background var(--dur); }
+  .dock-btn:active { transform: scale(.94); background: rgba(255, 255, 255, .12); }
+  .dock-btn .ic { width: 26px; height: 26px; color: var(--c); filter: drop-shadow(0 0 8px var(--c)); }
+  .dock-btn { --c: var(--accent); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, transparent), rgba(255, 255, 255, .04));
+    border-color: color-mix(in srgb, var(--c) 35%, transparent); }
+  #navMissions { --c: #4dffa6; } #navShop { --c: #ff5dc8; } #navDaily { --c: #ffd34d; } #navSettings { --c: #5ef2ff; }
+  .badge { position: absolute; top: 8px; right: calc(50% - 22px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; font-style: normal; line-height: 18px; text-align: center;
+    box-shadow: 0 0 0 2px var(--bg); animation: pop 240ms var(--ease) both; }
+
+  .bar { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: var(--s3); margin-bottom: var(--s4); }
+  .bar h2 { margin: 0; font-size: var(--fs-xl); font-weight: 900; }
+  .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; margin: 0 calc(-1 * var(--s4)); padding: 0 var(--s4) var(--s4); }
+
+  .card { width: min(100%, 400px); border: 1.5px solid transparent; border-radius: var(--r-lg);
+    background: linear-gradient(160deg, rgba(30, 24, 84, .97), rgba(12, 16, 52, .97)) padding-box, var(--grad-edge) border-box;
+    padding: var(--s5); text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, .45), 0 0 40px rgba(140, 100, 255, .2); }
+  .screen.on .card, .modal .card { animation: cardIn 240ms var(--ease) both; }
+  .card h2 { margin: 0 0 var(--s1); font-size: var(--fs-xl); font-weight: 900; }
+  .card h3 { margin: 0 0 var(--s2); font-size: var(--fs-lg); font-weight: 800; }
+  .card p { margin: 0 0 var(--s4); }
+  .stack { display: flex; flex-direction: column; gap: var(--s3); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+
+  /* Oyun sonu */
+  .big-score { font-size: 80px; font-weight: 900; line-height: 1; margin: var(--s3) 0 var(--s2); font-variant-numeric: tabular-nums;
+    background: var(--grad-brand); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 22px rgba(176, 123, 255, .5)); animation: shimmer 6s linear infinite; }
+  .stats { display: flex; justify-content: center; gap: var(--s5); margin-bottom: var(--s4); color: var(--muted); font-weight: 700; }
+  .stats b { color: var(--text); }
+  .new-best { display: inline-block; margin-bottom: var(--s3); padding: var(--s1) var(--s3); border-radius: 999px;
+    background: var(--gold); color: var(--gold-ink); font-weight: 900; font-size: var(--fs-sm); letter-spacing: .08em; animation: pop 400ms var(--ease) both; }
+
+  /* Mağaza */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s3); max-width: 480px; margin: 0 auto; }
+  .skin { display: flex; flex-direction: column; align-items: center; gap: var(--s2); padding: var(--s4) var(--s2);
+    border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--panel-2); transition: transform var(--dur) var(--ease), border-color var(--dur); }
+  .skin:active { transform: scale(.96); }
+  .skin.equipped { border: 1.5px solid transparent; background: linear-gradient(160deg, rgba(40, 30, 100, .9), rgba(16, 20, 60, .9)) padding-box, var(--grad-edge) border-box;
+    box-shadow: 0 0 24px rgba(140, 100, 255, .3); }
+  .skin .dot { width: 56px; height: 56px; border-radius: 50%; }
+  .skin .name { font-weight: 800; }
+  .skin .price { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--gold); }
+  .skin .price.dim { color: var(--muted); }
+  .skin .price .ic { width: 14px; height: 14px; }
+
+  /* Görevler */
+  .list { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: var(--s3); max-width: 480px; }
+  .mission { display: grid; grid-template-columns: 1fr auto; gap: var(--s2) var(--s3); align-items: center; padding: var(--s4);
+    border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--panel-2); }
+  .mission .txt { font-weight: 800; }
+  .mission .rw { display: inline-flex; align-items: center; gap: 4px; color: var(--gold); font-weight: 800; font-size: var(--fs-sm); }
+  .mission .rw .ic { width: 14px; height: 14px; }
+  .bar-p { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+  .bar-p i { display: block; height: 100%; background: linear-gradient(90deg, #5ef2ff, #b07bff 50%, #ff5dc8); border-radius: 4px; transition: width 400ms var(--ease);
+    box-shadow: 0 0 10px rgba(176, 123, 255, .6); }
+  .mission.done { border-color: rgba(77, 255, 166, .5); }
+  .mission.claimed { opacity: .55; }
+  .note { text-align: center; margin: 0 0 var(--s4); font-size: var(--fs-sm); }
+
+  /* Sıralama */
+  .pill.tap { min-height: 44px; color: inherit; }
+  .pill.tap:active { transform: scale(.94); }
+  .rank-row { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: var(--s3); min-height: 64px;
+    padding: var(--s3) var(--s4); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--panel-2); }
+  .rank-row .pos { font-weight: 900; font-size: var(--fs-lg); text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rank-row:nth-child(1) .pos { color: var(--gold); }
+  .rank-row:nth-child(2) .pos { color: #d8e2ff; }
+  .rank-row:nth-child(3) .pos { color: #ff9f6b; }
+  .rank-row .who { min-width: 0; }
+  .rank-row .who b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-row .who small { color: var(--muted); font-size: var(--fs-xs); }
+  .rank-row .sc { font-weight: 900; font-size: var(--fs-xl); font-variant-numeric: tabular-nums; }
+  .rank-row.me { border-color: rgba(94, 242, 255, .7); box-shadow: 0 0 14px rgba(94, 242, 255, .35); }
+  .rank-empty { text-align: center; margin: var(--s6) auto; max-width: 300px; }
+  .rank-tabs { display: flex; justify-content: center; margin-bottom: var(--s4); }
+  .seg button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg button[role="tab"] { min-height: 44px; min-width: 110px; }
+  .name-card { max-width: 480px; margin: 0 auto var(--s4); padding: var(--s4); display: flex; flex-direction: column; gap: var(--s2);
+    border-radius: var(--r-lg); border: 1px solid rgba(94, 242, 255, .5); background: var(--panel-2); }
+  .name-card label { font-weight: 800; }
+  .name-row { display: flex; gap: var(--s2); }
+  .name-row input { flex: 1; min-width: 0; min-height: 48px; padding: 0 var(--s4); border-radius: var(--r-md); border: 1px solid var(--line);
+    background: rgba(0, 0, 0, .35); color: inherit; font: inherit; font-size: 16px; font-weight: 800; }
+  .name-card p { margin: 0; font-size: var(--fs-xs); color: var(--muted); }
+  .name-card p.bad { color: var(--danger); }
+  .rank-me { max-width: 480px; margin: 0 auto var(--s3); display: flex; align-items: center; justify-content: space-between; gap: var(--s3); font-weight: 800; }
+  .link-btn { min-height: 44px; padding: 0 var(--s2); border: 0; background: none; color: var(--accent); font: inherit; font-weight: 800; }
+  .rank-gap { list-style: none; text-align: center; color: var(--muted); font-weight: 900; }
+
+  /* Ayarlar */
+  .rows { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--s2); }
+  .row-item { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 60px; padding: 0 var(--s4);
+    border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; }
+  .switch { position: relative; width: 56px; height: 34px; border-radius: 17px; border: 0; background: rgba(255, 255, 255, .2); transition: background var(--dur); }
+  .switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff;
+    transition: transform var(--dur) var(--ease); }
+  .switch[aria-checked="true"] { background: var(--accent); }
+  .switch[aria-checked="true"]::after { transform: translateX(22px); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(0, 0, 0, .3); }
+  .seg button { min-height: 40px; padding: 0 var(--s4); border: 0; border-radius: 999px; background: none; font-weight: 800; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .danger-link { margin-top: var(--s4); background: none; border: 1px solid rgba(255, 112, 150, .4); color: var(--danger);
+    min-height: 52px; border-radius: var(--r-md); font-weight: 800; }
+  .ver { text-align: center; color: var(--muted); font-size: var(--fs-xs); margin-top: var(--s4); }
+
+  /* Günlük ödül */
+  .days { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s2); margin-bottom: var(--s4); }
+  .day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--s2) 0; border-radius: var(--r-md);
+    background: var(--panel-2); border: 1px solid var(--line); font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+  .day b { color: var(--gold); font-size: var(--fs-md); }
+  .day .ic { width: 16px; height: 16px; }
+  .day.done { opacity: .5; }
+  .day.today { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 18px rgba(255, 211, 77, .3); color: var(--text); animation: breathe 2s var(--ease) infinite; }
+  .day.d7 { grid-column: span 2; }
+
+  /* Modal + toast */
+  .modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: var(--s4);
+    background: rgba(3, 5, 16, .7); animation: fade 200ms var(--ease) both; }
+  #toast { position: fixed; left: 50%; bottom: calc(var(--sb) + var(--banner-h) + 96px); z-index: 80; max-width: 86vw;
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: var(--s3) var(--s5); border-radius: 999px;
+    background: rgba(14, 20, 54, .96); border: 1px solid var(--line); font-weight: 700; text-align: center;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+  #toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* HUD */
+  #hud { position: fixed; z-index: 10; top: calc(var(--st) + var(--s3)); left: var(--s4); right: var(--s4);
+    display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+  #hud > * { pointer-events: auto; }
+  #hudScoreWrap { position: absolute; left: 50%; top: 0; transform: translateX(-50%); text-align: center; pointer-events: none; }
+  #hudScore { font-size: var(--fs-2xl); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, .6), 0 0 24px rgba(94, 242, 255, .3); }
+  #hudScore.bump { animation: bump 240ms var(--ease); }
+  #hudCombo { margin-top: var(--s1); font-weight: 900; color: var(--gold); font-size: var(--fs-xl); min-height: 34px;
+    text-shadow: 0 0 16px currentColor; }
+  #hudCombo.pop { animation: pop 240ms var(--ease); }
+  #tut { position: fixed; z-index: 9; left: 0; right: 0; bottom: calc(var(--sb) + 64px); text-align: center; pointer-events: none;
+    font-weight: 800; font-size: var(--fs-lg); text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
+  #tut p { margin: var(--s1) var(--s4); }
+  #tut .muted { font-size: var(--fs-md); font-weight: 600; }
+  .tap-ring { width: 56px; height: 56px; margin: 0 auto var(--s3); border-radius: 50%; border: 3px solid var(--accent); animation: tap 1.2s var(--ease) infinite; }
+
+  /* ---------- kotiliy künyesi (logo Enerji ile aynı) ---------- */
+  :root { --logo-kotiliy: url("data:image/png;base64,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"); }
+  .kotiliy-mark { box-sizing: content-box; width: 34px; height: 30px; padding: 7px 12px; border-radius: 10px;
+    background: rgba(255, 255, 255, .94) var(--logo-kotiliy) center / contain no-repeat; background-origin: content-box; }
+  .credit { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .credit span:not(.kotiliy-mark) { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .4px; color: var(--muted); }
+  .about-links { display: flex; justify-content: center; gap: var(--s4); margin-top: var(--s3); font-size: var(--fs-xs); }
+  .about-links a { color: var(--muted); text-decoration: underline; padding: var(--s2); }
+  #intro .credit { position: absolute; bottom: calc(var(--sb) + var(--s7) + 34px); animation: fadeUp 400ms 2.4s var(--ease) both; }
+
+  /* ---------- Açılış (intro) ---------- */
+  #intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 45%, rgba(7, 11, 31, 0) 0, rgba(7, 11, 31, .55) 70%); transition: opacity 450ms var(--ease); }
+  #intro.out { opacity: 0; pointer-events: none; }
+  #intro .presents { position: absolute; top: 46%; font-size: var(--fs-lg); font-weight: 900; letter-spacing: .5em; color: var(--text);
+    text-shadow: 0 0 24px rgba(94, 242, 255, .6);
+    animation: presents 1.5s var(--ease) both; }
+  #intro .logo { display: flex; flex-direction: column; align-items: center; animation: logoIn 800ms 1.25s var(--ease) both; }
+  /* inline-block harfler üst öğenin background-clip:text'ini almaz -> degrade her harfte */
+  #intro .brand { animation: none; }
+  #intro .brand span { display: inline-block; background: var(--grad-brand); background-size: 700% 100%; background-position: calc(var(--i) * 16.66%) 0;
+    -webkit-background-clip: text; background-clip: text; animation: letterIn 520ms var(--ease) both; animation-delay: calc(1.5s + var(--i) * 70ms); }
+  #intro .tagline { animation: fadeUp 500ms 2.25s var(--ease) both; }
+  #intro .skip { position: absolute; bottom: calc(var(--sb) + var(--s7)); color: var(--muted); font-size: var(--fs-sm); font-weight: 700;
+    letter-spacing: .1em; animation: fadeUp 400ms 2.7s var(--ease) both, blink 1.6s 3.1s ease-in-out infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes bump { 50% { transform: scale(1.18); } }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes tap { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+  @keyframes presents { 0% { opacity: 0; transform: scale(.94); letter-spacing: .3em; } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: scale(1.04); letter-spacing: .6em; } }
+  @keyframes logoIn { from { opacity: 0; transform: scale(.7); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes letterIn { from { opacity: 0; transform: translateY(32px) scale(.8); } to { opacity: 1; transform: none; } }
+  @keyframes blink { 50% { opacity: .35; } }
+  /* Sektör / kontrol noktası bandı */
+  #sectorBanner { position: fixed; z-index: 12; left: 0; right: 0; top: 24%; display: flex; flex-direction: column; align-items: center;
+    gap: var(--s1); pointer-events: none; text-align: center; }
+  #sectorBanner small { font-size: var(--fs-sm); font-weight: 900; letter-spacing: .3em; color: var(--accent); text-shadow: 0 0 14px currentColor; }
+  #sectorBanner b { font-size: var(--fs-xl); font-weight: 900; padding: var(--s1) var(--s5);
+    background: var(--grad-brand); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 12px rgba(0, 0, 0, .6)); }
+  #sectorBanner.cp small { color: var(--gold); }
+  #sectorBanner.on { animation: banner 2.6s var(--ease) both; }
+  @keyframes banner { 0% { opacity: 0; transform: translateY(14px) scale(.92); } 12%, 78% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
+
+  /* Etkin güçlendirmeler (HUD) */
+  #hudPowers { display: flex; gap: 6px; justify-content: center; margin-top: var(--s1); }
+  .pw-chip { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 999px;
+    background: rgba(10, 6, 36, .6); border: 1.5px solid var(--c); color: var(--c); font-weight: 900; font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums; box-shadow: 0 0 12px color-mix(in srgb, var(--c) 50%, transparent); }
+  .pw-chip .ic { width: 16px; height: 16px; }
+
+  /* Ana menü sektör seçici */
+  .sector-pick { display: flex; align-items: center; gap: var(--s3); }
+  .sector-pick .icon-sq:disabled { opacity: .3; }
+  .sp-label { display: flex; flex-direction: column; align-items: center; min-width: 180px; }
+  .sp-label small { color: var(--muted); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; }
+  .sp-label b { font-size: var(--fs-md); font-weight: 900; color: var(--gold); }
+
+  .confetti { position: absolute; top: -16px; width: 9px; height: 15px; border-radius: 2px; pointer-events: none;
+    animation: confetti 2s cubic-bezier(.3, .6, .5, 1) both; }
+  @keyframes confetti { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .6; } }
+  @keyframes shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  @keyframes floatY { 50% { transform: translateY(-8px); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    #intro .presents { display: none; }
+  }
+  @media (max-height: 640px) { .orbit { width: 120px; } .cta { margin-bottom: var(--s3); } .big-score { font-size: 56px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1.5l2.9 7.6 7.6 2.9-7.6 2.9-2.9 7.6-2.9-7.6L1.5 12l7.6-2.9z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l12.5-7.5z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect fill="currentColor" x="6" y="4.5" width="4.2" height="15" rx="1.2"/><rect fill="currentColor" x="13.8" y="4.5" width="4.2" height="15" rx="1.2"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></g><circle fill="currentColor" cx="12" cy="12" r="1.8"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></g></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="4.5" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8v12"/><path d="M12 8C10.5 4 7 4 7 6.2S10 8 12 8zm0 0c1.5-4 5-4 5-1.8S14 8 12 8z"/></g></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></g></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-ad" viewBox="0 0 24 24"><rect fill="none" stroke="currentColor" stroke-width="2" x="2.5" y="5" width="19" height="14" rx="3"/><path fill="currentColor" d="M10 9v6l5-3z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8"/></g></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 21V4"/><path fill="currentColor" d="M6 4h11l-2.5 4L17 12H6z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l8 3v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10v-6z"/></symbol>
+    <symbol id="i-magnet" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 4v8a6 6 0 0 0 12 0V4"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="cv"></canvas>
+
+<div id="hud" hidden>
+  <div class="pill"><svg class="ic gold"><use href="#i-star"/></svg><span class="js-coins">0</span></div>
+  <div id="hudScoreWrap"><div id="hudScore">0</div><div id="hudCombo"></div><div id="hudPowers"></div></div>
+  <button class="icon-sq" id="btnPause" data-i18n-aria="hud.pause"><svg class="ic"><use href="#i-pause"/></svg></button>
+</div>
+<div id="sectorBanner" hidden aria-live="polite"><small id="sbTop"></small><b id="sbName"></b></div>
+<div id="tut" hidden><div class="tap-ring"></div><p data-i18n="tut.1"></p><p class="muted" data-i18n="tut.2"></p></div>
+
+<!-- Ana menü -->
+<section class="screen" id="home">
+  <div class="topbar">
+    <div class="pill"><svg class="ic gold"><use href="#i-star"/></svg><span class="js-coins">0</span></div>
+    <button class="pill tap" id="navRank" data-i18n-aria="rank.title"><svg class="ic"><use href="#i-trophy"/></svg><span id="homeBest">0</span></button>
+  </div>
+  <div class="hero">
+    <svg class="orbit" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><radialGradient id="lp1" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".55" stop-color="#ff7a59"/><stop offset="1" stop-color="#8a1f5c"/></radialGradient></defs>
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#5ef2ff" stroke-opacity=".4" stroke-width="2" stroke-dasharray="6 7"/>
+      <circle cx="100" cy="100" r="44" fill="url(#lp1)"/>
+      <ellipse cx="100" cy="104" rx="66" ry="13" fill="none" stroke="#ffd9a8" stroke-opacity=".7" stroke-width="4" transform="rotate(-18 100 104)"/>
+      <g class="comet"><circle cx="100" cy="22" r="13" fill="#5ef2ff" opacity=".3"/><circle cx="100" cy="22" r="7" fill="#e9feff"/></g>
+    </svg>
+    <h1 class="brand">YÖRÜNGE</h1>
+    <p class="tagline" data-i18n="intro.tag"></p>
+  </div>
+  <div class="cta">
+    <button class="btn xl" id="btnPlay"><svg class="ic"><use href="#i-play"/></svg><span data-i18n="home.play"></span></button>
+    <div class="sector-pick" id="sectorPick" hidden>
+      <button class="icon-sq" id="spPrev" data-i18n-aria="home.prevSector"><svg class="ic"><use href="#i-back"/></svg></button>
+      <div class="sp-label"><small data-i18n="home.start"></small><b id="spName"></b></div>
+      <button class="icon-sq" id="spNext" data-i18n-aria="home.nextSector"><svg class="ic" style="transform:scaleX(-1)"><use href="#i-back"/></svg></button>
+    </div>
+    <p class="hint" data-i18n="home.hint"></p>
+  </div>
+  <nav class="dock">
+    <button class="dock-btn" id="navMissions"><svg class="ic"><use href="#i-target"/></svg><span data-i18n="nav.missions"></span><i class="badge" id="badgeMissions" hidden></i></button>
+    <button class="dock-btn" id="navShop"><svg class="ic"><use href="#i-bag"/></svg><span data-i18n="nav.shop"></span></button>
+    <button class="dock-btn" id="navDaily"><svg class="ic"><use href="#i-gift"/></svg><span data-i18n="nav.daily"></span><i class="badge" id="badgeDaily" hidden>!</i></button>
+    <button class="dock-btn" id="navSettings"><svg class="ic"><use href="#i-gear"/></svg><span data-i18n="nav.settings"></span></button>
+  </nav>
+</section>
+
+<!-- Mağaza -->
+<section class="screen" id="shop">
+  <header class="bar">
+    <button class="icon-sq" data-back data-i18n-aria="common.back"><svg class="ic"><use href="#i-back"/></svg></button>
+    <h2 data-i18n="shop.title"></h2>
+    <div class="pill"><svg class="ic gold"><use href="#i-star"/></svg><span class="js-coins">0</span></div>
+  </header>
+  <div class="scroll"><p class="note muted" data-i18n="shop.note"></p><div class="grid" id="shopGrid"></div></div>
+</section>
+
+<!-- Görevler -->
+<section class="screen" id="missions">
+  <header class="bar">
+    <button class="icon-sq" data-back data-i18n-aria="common.back"><svg class="ic"><use href="#i-back"/></svg></button>
+    <h2 data-i18n="missions.title"></h2>
+    <div class="pill"><svg class="ic gold"><use href="#i-star"/></svg><span class="js-coins">0</span></div>
+  </header>
+  <div class="scroll"><p class="note muted" id="missionsReset"></p><ul class="list" id="missionList"></ul></div>
+</section>
+
+<!-- Sıralama -->
+<section class="screen" id="rank">
+  <header class="bar">
+    <button class="icon-sq" data-back data-i18n-aria="common.back"><svg class="ic"><use href="#i-back"/></svg></button>
+    <h2 data-i18n="rank.title"></h2>
+    <span></span>
+  </header>
+  <div class="scroll">
+    <div class="rank-tabs"><div class="seg" role="tablist">
+      <button role="tab" id="tabWorld" data-rtab="world" aria-controls="paneWorld" data-i18n="rank.world"></button>
+      <button role="tab" id="tabLocal" data-rtab="local" aria-controls="paneLocal" data-i18n="rank.local"></button>
+    </div></div>
+    <div id="paneWorld" role="tabpanel" aria-labelledby="tabWorld">
+      <form class="name-card" id="nameCard" hidden>
+        <label for="nameInput" data-i18n="rank.nameLabel"></label>
+        <div class="name-row"><input id="nameInput" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+          <button class="btn sm" id="btnName" type="submit" data-i18n="rank.save"></button></div>
+        <p id="nameMsg" role="status"></p>
+      </form>
+      <div class="rank-me" id="rankMe" hidden><span id="rankMeTxt"></span><button class="link-btn" id="btnRename" type="button" data-i18n="rank.rename"></button></div>
+      <ol class="list" id="worldList"></ol>
+      <div class="rank-empty" id="worldState" hidden><p class="muted" id="worldMsg" role="status"></p>
+        <button class="btn ghost sm" id="btnWorldRetry" data-i18n="rank.retry" hidden></button></div>
+    </div>
+    <div id="paneLocal" role="tabpanel" aria-labelledby="tabLocal" hidden>
+      <p class="note muted" data-i18n="rank.note"></p><ol class="list" id="rankList"></ol>
+      <p class="rank-empty muted" id="rankEmpty" data-i18n="rank.empty" hidden></p>
+    </div>
+  </div>
+</section>
+
+<!-- Ayarlar -->
+<section class="screen" id="settings">
+  <header class="bar">
+    <button class="icon-sq" data-back data-i18n-aria="common.back"><svg class="ic"><use href="#i-back"/></svg></button>
+    <h2 data-i18n="settings.title"></h2>
+    <span></span>
+  </header>
+  <div class="scroll"><div class="rows">
+    <div class="row-item"><span data-i18n="settings.sound"></span><button class="switch" role="switch" id="swSfx" data-i18n-aria="settings.sound"></button></div>
+    <div class="row-item"><span data-i18n="settings.music"></span><button class="switch" role="switch" id="swMusic" data-i18n-aria="settings.music"></button></div>
+    <div class="row-item"><span data-i18n="settings.vibe"></span><button class="switch" role="switch" id="swVibe" data-i18n-aria="settings.vibe"></button></div>
+    <div class="row-item"><span data-i18n="settings.notify"></span><button class="switch" role="switch" id="swNotify" data-i18n-aria="settings.notify"></button></div>
+    <div class="row-item"><span data-i18n="settings.lang"></span>
+      <div class="seg"><button data-lang="tr">Türkçe</button><button data-lang="en">English</button></div></div>
+    <button class="danger-link" id="btnReset" data-i18n="settings.reset"></button>
+    <div class="credit" style="margin-top: var(--s6)">
+      <span class="kotiliy-mark" role="img" aria-label="kotiliy"></span>
+      <span data-i18n="common.developedBy"></span>
+    </div>
+    <p class="ver">Yörünge v<span id="ver"></span></p>
+    <div class="about-links">
+      <a href="https://kotil53.github.io/yorunge/privacy-policy.html" target="_blank" rel="noopener" data-i18n="settings.privacy"></a>
+      <a href="mailto:osmankotil@outlook.com" data-i18n="settings.contact"></a>
+    </div>
+  </div></div>
+</section>
+
+<!-- Duraklat -->
+<section class="screen center" id="pause">
+  <div class="card stack">
+    <h2 data-i18n="pause.title"></h2>
+    <button class="btn block" id="btnResume"><svg class="ic"><use href="#i-play"/></svg><span data-i18n="pause.resume"></span></button>
+    <button class="btn ghost block" id="btnRestart" data-i18n="pause.restart"></button>
+    <button class="btn ghost block" id="btnPauseMenu" data-i18n="pause.menu"></button>
+  </div>
+</section>
+
+<!-- Oyun sonu -->
+<section class="screen center" id="over">
+  <div class="card">
+    <h2 data-i18n="over.title"></h2>
+    <p class="muted" id="overReason" style="margin:0"></p>
+    <div class="big-score" id="overScore">0</div>
+    <div class="new-best" id="overNewBest" data-i18n="over.newBest" hidden></div>
+    <div class="stats">
+      <span><span data-i18n="over.best"></span> <b id="overBest">0</b></span>
+      <span id="overRank" hidden><svg class="ic" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-trophy"/></svg> <b id="overRankN"></b></span>
+      <span><svg class="ic gold" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-star"/></svg> <b id="overCoins">+0</b></span>
+    </div>
+    <div class="stack">
+      <button class="btn gold block" id="btnContinue"><svg class="ic"><use href="#i-ad"/></svg><span data-i18n="over.continue"></span></button>
+      <button class="btn block" id="btnCheckpoint"><svg class="ic"><use id="cpIcon" href="#i-flag"/></svg><span id="cpLabel"></span></button>
+      <button class="btn ghost block sm" id="btnDouble"><svg class="ic"><use href="#i-ad"/></svg><span data-i18n="over.double"></span></button>
+      <div class="row2">
+        <button class="btn block" id="btnRetry" data-i18n="over.retry"></button>
+        <button class="btn ghost block" id="btnOverMenu" data-i18n="over.menu"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Günlük ödül -->
+<div class="modal" id="daily" hidden role="dialog" aria-modal="true" aria-labelledby="dailyTitle">
+  <div class="card">
+    <h2 id="dailyTitle" data-i18n="daily.title"></h2>
+    <p class="muted" id="dailyText"></p>
+    <div class="days" id="dailyDays"></div>
+    <div class="stack">
+      <button class="btn gold block" id="btnDailyDouble"><svg class="ic"><use href="#i-ad"/></svg><span data-i18n="daily.double"></span></button>
+      <button class="btn block" id="btnDailyClaim" data-i18n="daily.claim"></button>
+      <button class="btn ghost block sm" id="btnDailyClose" data-i18n="common.close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Onay -->
+<div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+  <div class="card">
+    <h3 id="cfTitle"></h3>
+    <p class="muted" id="cfText"></p>
+    <div class="row2">
+      <button class="btn ghost" id="cfNo" data-i18n="common.no"></button>
+      <button class="btn" id="cfYes"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Açılış animasyonu: dokununca atlanır -->
+<div id="intro">
+  <div class="presents" data-i18n="intro.presents"></div>
+  <div class="credit">
+    <span class="kotiliy-mark" role="img" aria-label="kotiliy"></span>
+    <span data-i18n="common.developedBy"></span>
+  </div>
+  <div class="logo">
+    <svg class="orbit" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><radialGradient id="lp2" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".55" stop-color="#ff7a59"/><stop offset="1" stop-color="#8a1f5c"/></radialGradient></defs>
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#5ef2ff" stroke-opacity=".4" stroke-width="2" stroke-dasharray="6 7"/>
+      <circle cx="100" cy="100" r="44" fill="url(#lp2)"/>
+      <ellipse cx="100" cy="104" rx="66" ry="13" fill="none" stroke="#ffd9a8" stroke-opacity=".7" stroke-width="4" transform="rotate(-18 100 104)"/>
+      <g class="comet"><circle cx="100" cy="22" r="13" fill="#5ef2ff" opacity=".3"/><circle cx="100" cy="22" r="7" fill="#e9feff"/></g>
+    </svg>
+    <h1 class="brand" aria-label="Yörünge"><span style="--i:0">Y</span><span style="--i:1">Ö</span><span style="--i:2">R</span><span style="--i:3">Ü</span><span style="--i:4">N</span><span style="--i:5">G</span><span style="--i:6">E</span></h1>
+    <p class="tagline" data-i18n="intro.tag"></p>
+  </div>
+  <div class="skip" data-i18n="intro.skip"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ======================================================================
+     YÖRÜNGE — tek dosyalık oyun. Bölümler:
+       1) Yardımcılar   2) Kayıt (Store)   3) Dil   4) Ses / titreşim
+       5) Toast / onay  6) Reklam (AdMob)  7) Bildirim
+       8) Ekonomi: yıldız, kostüm, görev, günlük ödül
+       9) Dünya + oyun mantığı   10) Çizim   11) Ekranlar   12) Girdi
+       13) Native   14) Başlat   15) Öz-sınama (#selftest)
+     ====================================================================== */
+
+  var VERSION = "1.0.0";
+
+  /* 1) YARDIMCILAR ------------------------------------------------------- */
+  var $ = function (id) { return document.getElementById(id); };
+  var TAU = Math.PI * 2;
+  var reduceMotion = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function rnd() { return Math.random(); }
+  function rndInt(k) { return Math.floor(Math.random() * k); }
+  function noop() {}
+  function hexA(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+  function mulberry32(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashStr(s) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  // Yerel gün anahtarı; off = gün kaydırma (-1 = dün)
+  function dayKey(off) {
+    var d = new Date(); d.setDate(d.getDate() + (off || 0));
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+
+  /* 2) KAYIT — localStorage, gizli sekmede sessizce devre dışı ------------ */
+  var Store = {
+    P: "yorunge.v1.",
+    ok: (function () { try { localStorage.setItem("yorunge.t", "1"); localStorage.removeItem("yorunge.t"); return true; } catch (e) { return false; } })(),
+    get: function (k, d) {
+      if (!this.ok) return d;
+      try { var v = localStorage.getItem(this.P + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; }
+    },
+    set: function (k, v) { if (this.ok) try { localStorage.setItem(this.P + k, JSON.stringify(v)); } catch (e) {} },
+    wipe: function () {
+      if (!this.ok) return;
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(this.P) === 0) localStorage.removeItem(k);
+      }
+    }
+  };
+
+  /* 3) DİL — cihaz dili; elle seçilirse kaydedilir ------------------------
+     Yeni dil: LANGS + I18N + Ayarlar'daki data-lang düğmesi + apply-native-config.mjs APP_LANGS */
+  var LANGS = ["tr", "en"];
+  var I18N = {
+    tr: {
+      "intro.presents": "KOTILIY", "intro.tag": "Gezegenden gezegene sıçra", "intro.skip": "DOKUN",
+      "home.play": "OYNA", "home.hint": "Dokun, fırla, yörüngeye gir",
+      "nav.missions": "Görevler", "nav.shop": "Mağaza", "nav.daily": "Ödül", "nav.settings": "Ayarlar",
+      "tut.1": "Dokun: kuyruklu yıldız yörüngeden fırlar", "tut.2": "Sonraki gezegenin halkasına gir",
+      "hud.pause": "Duraklat",
+      "pause.title": "Duraklatıldı", "pause.resume": "Devam", "pause.restart": "Yeniden başla", "pause.menu": "Ana menü",
+      "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!",
+      "over.continue": "Devam et", "over.double": "Yıldızları 2 katına çıkar", "over.retry": "Tekrar", "over.menu": "Menü",
+      "reason.void": "Boşluğa savruldun", "reason.moon": "Bir aya çarptın", "reason.hole": "Kara delik seni yuttu", "reason.decay": "Çok bekledin, yörüngen çöktü",
+      "sector.label": "SEKTÖR {n}", "sector.s0": "Başlangıç Kuşağı", "sector.s1": "Ay Tarlası", "sector.s2": "Akıntı Bulutsusu",
+      "sector.s3": "Kara Delik Vadisi", "sector.s4": "Buzul Halkalar", "sector.s5": "Pulsar Fırtınası", "sector.deep": "Derin Uzay",
+      "cp.reached": "KONTROL NOKTASI", "cp.short": "KONTROL NOKTASI", "over.checkpoint": "Kontrol noktasından",
+      "home.start": "BAŞLANGIÇ", "home.prevSector": "Önceki sektör", "home.nextSector": "Sonraki sektör",
+      "power.shield": "Kalkan!", "power.magnet": "Mıknatıs!", "power.x2": "2x Puan!", "shield.saved": "Kalkan seni kurtardı!",
+      "combo.quick": "Hızlı!", "combo.perfect": "Kusursuz!", "combo.legend": "Efsane!",
+      "shop.title": "Mağaza", "shop.note": "Yıldız topla, kuyruklu yıldızına yeni görünüm kazan.",
+      "shop.equip": "Kullan", "shop.equipped": "Kullanılıyor", "shop.need": "{n} yıldız daha gerek",
+      "shop.buyQ": "{name} alınsın mı?", "shop.buyText": "{n} yıldız harcanacak.", "shop.buy": "Satın al",
+      "skin.nova": "Nova", "skin.ember": "Kor", "skin.emerald": "Zümrüt", "skin.royal": "Kraliyet",
+      "skin.rose": "Gül", "skin.gold": "Altın", "skin.rainbow": "Gökkuşağı", "skin.void": "Süpernova",
+      "rank.world": "Dünya", "rank.local": "Benim", "rank.nameLabel": "Takma adın", "rank.save": "Kaydet", "rank.saving": "Kaydediliyor…",
+      "rank.nameHint": "3–16 karakter. Takma adın ve en iyi puanın herkese görünür.",
+      "rank.nameBad": "Bu ad kullanılamaz. Harf, rakam, boşluk ya da _ . - kullan.", "rank.nameTaken": "Bu ad alınmış, başka bir tane dene.",
+      "rank.offline": "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.", "rank.rate": "Biraz bekleyip tekrar dene.",
+      "rank.error": "Bir sorun oluştu, tekrar dene.", "rank.retry": "Tekrar dene", "rank.loading": "Yükleniyor…",
+      "rank.soon": "Dünya sıralaması yakında açılacak.", "rank.worldEmpty": "Henüz kimse yok. Listeye ilk giren sen ol!",
+      "rank.me": "{name} · {n}. sıradasın", "rank.meNone": "{name} · listeye girmek için oyna", "rank.rename": "Adı değiştir",
+      "rank.title": "Sıralama", "rank.note": "Bu cihazdaki en iyi 10 oyunun", "rank.empty": "Henüz oyun yok. İlk oyununu oyna, burada görün!",
+      "rank.meta": "{d} · en yüksek kombo x{c}", "over.rank": "Sıra #{n}",
+      "missions.title": "Görevler", "missions.claim": "Al", "missions.claimed": "Alındı", "missions.reset": "Yeni görevler {h} saat sonra",
+      "m.planets": "{n} gezegene ulaş", "m.stars": "{n} yıldız topla", "m.score": "Tek oyunda {n} puan yap",
+      "m.runs": "{n} oyun oyna", "m.combo": "x{n} kombo yap",
+      "daily.title": "Günlük Ödül", "daily.day": "Gün {n}", "daily.claim": "Topla", "daily.double": "2 kat topla",
+      "daily.text": "Her gün gel, seri büyüdükçe ödül büyüsün.", "daily.done": "Bugünün ödülü alındı. Yarın gel, seri bozulmasın!",
+      "settings.title": "Ayarlar", "settings.sound": "Ses efektleri", "settings.music": "Müzik", "settings.vibe": "Titreşim",
+      "settings.notify": "Hatırlatıcılar", "settings.lang": "Dil", "settings.reset": "İlerlemeyi sıfırla", "settings.privacy": "Gizlilik politikası", "settings.contact": "İletişim",
+      "settings.resetQ": "Tüm ilerleme silinsin mi?", "settings.resetText": "Yıldızlar, rekor, kostümler ve görevler silinir. Geri alınamaz.",
+      "common.yes": "Evet", "common.no": "Vazgeç", "common.close": "Kapat", "common.back": "Geri", "common.reset": "Sıfırla", "common.developedBy": "kotiliy tarafından geliştirildi",
+      "toast.adNotReady": "Reklam şu an hazır değil, birazdan tekrar dene", "toast.bought": "{name} senin!",
+      "toast.reward": "+{n} yıldız", "toast.mission": "Görev tamamlandı! Ödülünü al",
+      "notify.title": "Yörünge seni bekliyor", "notify.daily": "Günlük ödülün hazır. Serini bozma!",
+      "notify.missions": "Yeni görevler geldi. Rekorunu geçebilir misin?", "notify.miss": "Gezegenler dönmeye devam ediyor. Geri dön!"
+    },
+    en: {
+      "intro.presents": "KOTILIY", "intro.tag": "Leap from planet to planet", "intro.skip": "TAP",
+      "home.play": "PLAY", "home.hint": "Tap, launch, catch the next orbit",
+      "nav.missions": "Missions", "nav.shop": "Shop", "nav.daily": "Reward", "nav.settings": "Settings",
+      "tut.1": "Tap: your comet launches off its orbit", "tut.2": "Fly into the next planet's ring",
+      "hud.pause": "Pause",
+      "pause.title": "Paused", "pause.resume": "Resume", "pause.restart": "Restart", "pause.menu": "Main menu",
+      "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!",
+      "over.continue": "Continue", "over.double": "Double your stars", "over.retry": "Retry", "over.menu": "Menu",
+      "reason.void": "You drifted into the void", "reason.moon": "You hit a moon", "reason.hole": "A black hole swallowed you", "reason.decay": "You waited too long, your orbit decayed",
+      "sector.label": "SECTOR {n}", "sector.s0": "Starter Belt", "sector.s1": "Moon Fields", "sector.s2": "Drift Nebula",
+      "sector.s3": "Black Hole Valley", "sector.s4": "Frozen Rings", "sector.s5": "Pulsar Storm", "sector.deep": "Deep Space",
+      "cp.reached": "CHECKPOINT", "cp.short": "CHECKPOINT", "over.checkpoint": "From checkpoint",
+      "home.start": "START AT", "home.prevSector": "Previous sector", "home.nextSector": "Next sector",
+      "power.shield": "Shield!", "power.magnet": "Magnet!", "power.x2": "2x Score!", "shield.saved": "Shield saved you!",
+      "combo.quick": "Quick!", "combo.perfect": "Perfect!", "combo.legend": "Legendary!",
+      "shop.title": "Shop", "shop.note": "Collect stars and unlock new looks for your comet.",
+      "shop.equip": "Equip", "shop.equipped": "Equipped", "shop.need": "{n} more stars",
+      "shop.buyQ": "Buy {name}?", "shop.buyText": "This costs {n} stars.", "shop.buy": "Buy",
+      "skin.nova": "Nova", "skin.ember": "Ember", "skin.emerald": "Emerald", "skin.royal": "Royal",
+      "skin.rose": "Rose", "skin.gold": "Gold", "skin.rainbow": "Rainbow", "skin.void": "Supernova",
+      "rank.world": "World", "rank.local": "Mine", "rank.nameLabel": "Your nickname", "rank.save": "Save", "rank.saving": "Saving…",
+      "rank.nameHint": "3–16 characters. Your nickname and best score are public.",
+      "rank.nameBad": "That name can’t be used. Use letters, numbers, spaces or _ . -", "rank.nameTaken": "That name is taken, try another.",
+      "rank.offline": "Couldn’t connect. Check your internet and try again.", "rank.rate": "Wait a moment and try again.",
+      "rank.error": "Something went wrong, try again.", "rank.retry": "Try again", "rank.loading": "Loading…",
+      "rank.soon": "The world leaderboard is coming soon.", "rank.worldEmpty": "No one here yet. Be the first on the list!",
+      "rank.me": "{name} · you are #{n}", "rank.meNone": "{name} · play to get on the list", "rank.rename": "Change name",
+      "rank.title": "Leaderboard", "rank.note": "Your top 10 runs on this device", "rank.empty": "No runs yet. Play your first game to show up here!",
+      "rank.meta": "{d} · best combo x{c}", "over.rank": "Rank #{n}",
+      "missions.title": "Missions", "missions.claim": "Claim", "missions.claimed": "Claimed", "missions.reset": "New missions in {h}h",
+      "m.planets": "Reach {n} planets", "m.stars": "Collect {n} stars", "m.score": "Score {n} in one run",
+      "m.runs": "Play {n} runs", "m.combo": "Hit a x{n} combo",
+      "daily.title": "Daily Reward", "daily.day": "Day {n}", "daily.claim": "Collect", "daily.double": "Collect 2x",
+      "daily.text": "Come back every day. The longer the streak, the bigger the reward.", "daily.done": "Collected today. Come back tomorrow to keep your streak!",
+      "settings.title": "Settings", "settings.sound": "Sound effects", "settings.music": "Music", "settings.vibe": "Vibration",
+      "settings.notify": "Reminders", "settings.lang": "Language", "settings.reset": "Reset progress", "settings.privacy": "Privacy policy", "settings.contact": "Contact",
+      "settings.resetQ": "Erase all progress?", "settings.resetText": "Stars, best score, skins and missions will be deleted. This can't be undone.",
+      "common.yes": "Yes", "common.no": "Cancel", "common.close": "Close", "common.back": "Back", "common.reset": "Reset", "common.developedBy": "developed by kotiliy",
+      "toast.adNotReady": "Ad isn't ready yet, try again in a moment", "toast.bought": "{name} is yours!",
+      "toast.reward": "+{n} stars", "toast.mission": "Mission complete! Claim your reward",
+      "notify.title": "Your orbit awaits", "notify.daily": "Your daily reward is ready. Keep the streak alive!",
+      "notify.missions": "New missions are in. Can you beat your best?", "notify.miss": "The planets keep spinning. Come back!"
+    }
+  };
+  function detectLang() {
+    var list = navigator.languages || [navigator.language || "en"];
+    for (var i = 0; i < list.length; i++) {
+      var l = String(list[i] || "").slice(0, 2).toLowerCase();
+      if (LANGS.indexOf(l) >= 0) return l;
+    }
+    return "en";
+  }
+  var LANG = Store.get("lang", null) || detectLang();
+  function t(k, v) {
+    var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
+    if (v) for (var n in v) s = s.split("{" + n + "}").join(v[n]);
+    return s;
+  }
+  function applyI18n() {
+    document.documentElement.lang = LANG;
+    var els = document.querySelectorAll("[data-i18n]"), i;
+    for (i = 0; i < els.length; i++) els[i].textContent = t(els[i].getAttribute("data-i18n"));
+    els = document.querySelectorAll("[data-i18n-aria]");
+    for (i = 0; i < els.length; i++) els[i].setAttribute("aria-label", t(els[i].getAttribute("data-i18n-aria")));
+  }
+
+  /* 4) SES (WebAudio sentezi, dosya yok) + TİTREŞİM ----------------------
+     Müzik 16'lık adımlı bir sıralayıcı: her sektörün kendi ruh hali (ton, mod, tempo, akor dizisi, arpej)
+     var, menüde sakin bir ninni çalar. Oyunda davul girer, kombo ≥ 3 olunca hızlanır. Efektler çalan
+     ruh halinin dizisinden nota seçer, böylece müzikle uyumlu kalır. */
+  var MOOD_MENU = { root: 146.83, bpm: 70, bars: 2, pad: "sine", cut: 900, drums: 0, arpWave: "sine",
+    prog: [[0, 4, 7, 11], [5, 9, 12, 16], [-3, 0, 4, 7], [-5, -1, 2, 7]], scale: [0, 2, 4, 7, 9],
+    arp: [0, -1, -1, 2, -1, -1, 4, -1, -1, -1, 3, -1, -1, -1, -1, -1] };
+  var MOODS = [
+    // Başlangıç Kuşağı: aydınlık C majör
+    { root: 130.81, bpm: 100, bars: 1, pad: "triangle", cut: 1600, drums: 1, arpWave: "triangle",
+      prog: [[0, 4, 7], [7, 11, 14], [9, 12, 16], [5, 9, 12]], scale: [0, 2, 4, 7, 9],
+      arp: [0, -1, 1, -1, 2, -1, 3, -1, 4, -1, 3, -1, 2, -1, 1, -1] },
+    // Ay Tarlası: hüzünlü A minör
+    { root: 110, bpm: 96, bars: 1, pad: "sawtooth", cut: 1100, drums: 1, arpWave: "triangle",
+      prog: [[0, 3, 7], [-4, 0, 3], [3, 7, 10], [-2, 2, 5]], scale: [0, 3, 5, 7, 10],
+      arp: [0, -1, 2, -1, 1, -1, 2, 4, -1, 2, -1, 1, -1, 3, -1, -1] },
+    // Akıntı Bulutsusu: süzülen E dorian
+    { root: 164.81, bpm: 88, bars: 2, pad: "sine", cut: 1300, drums: 0.6, arpWave: "sine",
+      prog: [[0, 3, 7, 10], [5, 9, 12, 15], [0, 3, 7, 10], [-2, 2, 5, 9]], scale: [0, 2, 3, 7, 9],
+      arp: [0, -1, -1, 2, -1, -1, 4, -1, -1, 3, -1, -1, 1, -1, -1, 5] },
+    // Kara Delik Vadisi: karanlık F# frigyen
+    { root: 92.5, bpm: 80, bars: 2, pad: "sawtooth", cut: 700, drums: 1, arpWave: "triangle",
+      prog: [[0, 3, 7], [1, 5, 8], [0, 3, 7], [-2, 1, 5]], scale: [0, 1, 3, 7, 8],
+      arp: [0, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 2, -1, -1, -1] },
+    // Buzul Halkalar: kristal B lidyen, çan sesi
+    { root: 123.47, bpm: 84, bars: 2, pad: "sine", cut: 2200, drums: 0.5, arpWave: "sine", bell: true,
+      prog: [[0, 4, 7, 11], [2, 6, 9, 13], [0, 4, 7, 11], [-1, 2, 6, 9]], scale: [0, 2, 4, 6, 11],
+      arp: [5, -1, 3, -1, 4, -1, 2, -1, 5, -1, 4, -1, 3, -1, 1, -1] },
+    // Pulsar Fırtınası: hızlı G minör
+    { root: 98, bpm: 120, bars: 1, pad: "sawtooth", cut: 1800, drums: 1, drive: true, arpWave: "triangle",
+      prog: [[0, 3, 7], [-4, 0, 3], [-2, 2, 5], [0, 3, 7]], scale: [0, 3, 5, 7, 10],
+      arp: [0, 1, 2, 1, 3, 1, 2, 1, 0, 1, 2, 1, 4, 3, 2, 1] }
+  ];
+
+  var Sound = {
+    MUSIC_VOL: 0.45, // müzik efektlerin altında kalsın
+    ctx: null, master: null, musicBus: null, _timer: 0, _step: 0, _bar: 0, _next: 0,
+    _key: null, _mood: MOOD_MENU, _chord: MOOD_MENU.prog[0], _deep: {}, _coinI: 0,
+    getState: null, // oyun durumu ({play, sector, combo}); oyun bölümünde atanır
+    sfx: Store.get("sfx", true),
+    music: Store.get("music", true),
+    ensure: function () {
+      if (!this.ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        try { this.ctx = new AC(); } catch (e) { return null; }
+        var c = this.ctx, comp = c.createDynamicsCompressor();
+        comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(c.destination);
+        // yankı: üretilmiş dürtü yanıtı, müzik ve efektler ortak kullanır
+        this.rev = c.createConvolver(); this.rev.buffer = this._impulse(2.4);
+        var revOut = c.createGain(); revOut.gain.value = 0.5; this.rev.connect(revOut); revOut.connect(comp);
+        this.master = c.createGain(); this.master.gain.value = 0.9; this.master.connect(comp);
+        var sfxRev = c.createGain(); sfxRev.gain.value = 0.22; this.master.connect(sfxRev); sfxRev.connect(this.rev);
+        this.musicBus = c.createGain(); this.musicBus.gain.value = 0; this.musicBus.connect(comp);
+        var musRev = c.createGain(); musRev.gain.value = 0.6; this.musicBus.connect(musRev); musRev.connect(this.rev);
+        this.padLP = c.createBiquadFilter(); this.padLP.type = "lowpass"; this.padLP.frequency.value = 900; this.padLP.connect(this.musicBus);
+        this.arpBus = c.createGain(); this.arpBus.connect(this.musicBus);
+        // arpej yankısı: geri beslemeli gecikme, döngüde alçak geçiren
+        var dl = c.createDelay(1), fb = c.createGain(), dlp = c.createBiquadFilter(), wet = c.createGain();
+        dl.delayTime.value = 0.32; fb.gain.value = 0.32; dlp.type = "lowpass"; dlp.frequency.value = 2000; wet.gain.value = 0.4;
+        this.arpBus.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(wet); wet.connect(this.musicBus);
+        this.drumBus = c.createGain(); this.drumBus.connect(this.musicBus);
+        var len = c.sampleRate, nb = c.createBuffer(1, len, c.sampleRate), nd = nb.getChannelData(0);
+        for (var i = 0; i < len; i++) nd[i] = Math.random() * 2 - 1;
+        this.noiseBuf = nb;
+      }
+      if (this.ctx.state === "suspended") { try { this.ctx.resume(); } catch (e) {} }
+      return this.ctx;
+    },
+    _impulse: function (sec) {
+      var c = this.ctx, len = Math.floor(c.sampleRate * sec), b = c.createBuffer(2, len, c.sampleRate);
+      for (var ch = 0; ch < 2; ch++) {
+        var d = b.getChannelData(ch);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      }
+      return b;
+    },
+    // Vurmalı zarf: att'de vol'e çıkar, decay zaman sabitiyle söner; slideTo varsa frekans kayar
+    _v: function (dest, f, t0, type, vol, att, decay, slideTo, slideDur) {
+      var c = this.ctx, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + (slideDur || decay * 3));
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + att);
+      g.gain.setTargetAtTime(0, t0 + att, decay);
+      o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + att + decay * 6);
+    },
+    // Uzun akor sesi: yavaş giriş, tutma, yavaş çıkış; iki hafif akort dışı osilatör
+    _pad: function (f, t0, dur, type, vol) {
+      var c = this.ctx, g = c.createGain(), att = Math.min(0.8, dur * 0.3);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + att);
+      g.gain.setValueAtTime(vol, t0 + dur);
+      g.gain.linearRampToValueAtTime(0, t0 + dur + 1.2);
+      g.connect(this.padLP);
+      for (var k = -1; k <= 1; k += 2) {
+        var o = c.createOscillator();
+        o.type = type; o.frequency.value = f; o.detune.value = k * 7;
+        o.connect(g); o.start(t0); o.stop(t0 + dur + 1.3);
+      }
+    },
+    _n: function (dest, t0, dur, vol, type, f0, f1) {
+      var c = this.ctx, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = this.noiseBuf; fl.type = type;
+      fl.frequency.setValueAtTime(f0, t0);
+      if (f1) fl.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+      g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      s.connect(fl); fl.connect(g); g.connect(dest); s.start(t0); s.stop(t0 + dur + 0.02);
+    },
+
+    // Ruh hali: menü / oyun dışı = -1; Derin Uzay (s ≥ 6) altı ruh halini her turda dörtlü yukarı taşır
+    _moodFor: function (key) {
+      if (key < 0) return MOOD_MENU;
+      if (key < MOODS.length) return MOODS[key];
+      if (!this._deep[key]) {
+        var base = MOODS[key % MOODS.length], m = {}, k;
+        for (k in base) m[k] = base[k];
+        var semi = (Math.floor(key / MOODS.length) * 5) % 12;
+        m.root = base.root * Math.pow(2, (semi > 6 ? semi - 12 : semi) / 12);
+        this._deep[key] = m;
+      }
+      return this._deep[key];
+    },
+    _keyNow: function () {
+      var st = this.getState ? this.getState() : null;
+      return st && st.play ? st.sector : -1;
+    },
+    // Ruh halinin pentatonik dizisinde d. derece (5 derece = 1 oktav)
+    _deg: function (d) {
+      var m = this._moodFor(this._keyNow()), sc = m.scale;
+      return m.root * Math.pow(2, (sc[d % sc.length] + 12 * Math.floor(d / sc.length)) / 12);
+    },
+
+    _tick: function () {
+      var c = this.ctx;
+      if (!c) return;
+      if (this._next < c.currentTime) this._next = c.currentTime + 0.05; // sekme uyuduysa geri kalan adımları atla
+      while (this._next < c.currentTime + 0.15) {
+        this._stepAt(this._next);
+        this._next += 60 / this._mood.bpm / 4;
+      }
+    },
+    _stepAt: function (t) {
+      var s = this._step % 16, st = this.getState ? this.getState() : null;
+      if (s === 0) this._barStart(t);
+      var m = this._mood, ch = this._chord, sd = 60 / m.bpm / 4, idx = m.arp[s], semi;
+      var play = st && st.play, hot = play && (st.combo >= 3 || m.drive);
+      if (idx >= 0) {
+        semi = ch[idx % ch.length] + 12 * (Math.floor(idx / ch.length) + 1);
+        var f = m.root * Math.pow(2, semi / 12);
+        this._v(this.arpBus, f, t, m.arpWave, 0.045, 0.005, sd * 1.4);
+        if (m.bell) this._v(this.arpBus, f * 2.76, t, "sine", 0.012, 0.002, sd * 0.6);
+      }
+      if (s === 0 || (s === 8 && m.bars === 1) || (m.drive && (s === 6 || s === 14)))
+        this._v(this.musicBus, m.root * Math.pow(2, (ch[0] - 12) / 12), t, "triangle", 0.1, 0.01, sd * (m.bars === 1 ? 2.5 : 6));
+      if (play && m.drums) {
+        if (s === 0 || s === 8) this._v(this.drumBus, 140, t, "sine", 0.22 * m.drums, 0.003, 0.09, 45, 0.18);
+        if (s % 4 === 2 || (hot && s % 2 === 1)) this._n(this.drumBus, t, 0.04, 0.05 * m.drums, "highpass", 7000);
+      }
+      this._step++;
+    },
+    // Ölçü başı: ruh hali değiştiyse geçer, akor `bars` ölçüde bir ilerler
+    _barStart: function (t) {
+      var key = this._keyNow();
+      if (key !== this._key) {
+        this._key = key; this._mood = this._moodFor(key); this._bar = 0;
+        this.padLP.frequency.setTargetAtTime(this._mood.cut, t, 0.6);
+      }
+      var m = this._mood, sd = 60 / m.bpm / 4;
+      if (this._bar % m.bars === 0) {
+        this._chord = m.prog[(this._bar / m.bars) % m.prog.length];
+        for (var i = 0; i < this._chord.length; i++)
+          this._pad(m.root * Math.pow(2, this._chord[i] / 12), t, sd * 16 * m.bars, m.pad, m.pad === "sawtooth" ? 0.022 : 0.04);
+      }
+      this._bar++;
+    },
+    startMusic: function () {
+      if (!this.music || !this.ensure()) return;
+      var g = this.musicBus.gain, now = this.ctx.currentTime;
+      g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(this.MUSIC_VOL, now + 1.5);
+      if (!this._timer) {
+        var self = this;
+        this._step = 0; this._next = now + 0.05;
+        this._tick(); this._timer = setInterval(function () { self._tick(); }, 50);
+      }
+    },
+    stopMusic: function () {
+      if (this._timer) { clearInterval(this._timer); this._timer = 0; }
+      if (!this.ctx) return;
+      var g = this.musicBus.gain, now = this.ctx.currentTime;
+      g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(0, now + 0.3);
+    },
+
+    // --- efektler ---
+    _t: function () { return this.sfx && this.ensure() ? this.ctx.currentTime + 0.005 : -1; },
+    jump: function () {
+      var t = this._t(); if (t < 0) return;
+      this._n(this.master, t, 0.2, 0.32, "bandpass", 500, 2600);
+      this._v(this.master, 330, t, "triangle", 0.08, 0.005, 0.06, 660, 0.15);
+    },
+    // Konma notası kombo ile dizide yükselir; ziyaret edilmiş gezegende alçak ve yumuşak
+    land: function (combo, again) {
+      var t = this._t(); if (t < 0) return;
+      var d = again ? 7 : 10 + Math.min(combo - 1, 9), f = this._deg(d), v = again ? 0.5 : 1;
+      this._v(this.master, f, t, "sine", 0.16 * v, 0.004, 0.12);
+      this._v(this.master, f * 2, t, "sine", 0.04 * v, 0.002, 0.05);
+      this._v(this.master, f / 2, t, "triangle", 0.05 * v, 0.004, 0.07);
+      if (!again) this._v(this.master, this._deg(d + 2), t + 0.07, "sine", 0.07, 0.004, 0.1);
+      if (combo >= 3 && !again) this._v(this.master, f * 4, t + 0.03, "sine", 0.025, 0.002, 0.08);
+    },
+    // Art arda yıldızlar dizide tırmanır
+    coin: function () {
+      var t = this._t(); if (t < 0) return;
+      var f = this._deg(12 + (this._coinI++ % 4));
+      this._v(this.master, f, t, "sine", 0.14, 0.002, 0.04);
+      this._v(this.master, f * 1.5, t + 0.05, "sine", 0.09, 0.002, 0.07);
+    },
+    die: function () {
+      var t = this._t(); if (t < 0) return;
+      this._v(this.master, 150, t, "sine", 0.35, 0.004, 0.25, 38, 0.5);
+      this._n(this.master, t, 0.8, 0.25, "lowpass", 1800, 100);
+      var f = this._deg(7);
+      this._v(this.master, f, t + 0.05, "triangle", 0.07, 0.01, 0.4, f / 4, 0.7);
+      // müzik bir an susar, sonra geri gelir
+      if (this._timer) {
+        var g = this.musicBus.gain;
+        g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+        g.linearRampToValueAtTime(0.06, t + 0.1); g.linearRampToValueAtTime(this.MUSIC_VOL, t + 2.5);
+      }
+    },
+    click: function () {
+      var t = this._t(); if (t < 0) return;
+      this._v(this.master, 1100, t, "sine", 0.09, 0.002, 0.012);
+      this._v(this.master, 550, t, "triangle", 0.05, 0.002, 0.015);
+    },
+    fanfare: function () {
+      var t = this._t(); if (t < 0) return;
+      var seq = [5, 7, 9, 10], i, f;
+      for (i = 0; i < seq.length; i++) {
+        f = this._deg(seq[i]);
+        this._v(this.master, f, t + i * 0.09, "triangle", 0.1, 0.005, 0.12);
+        this._v(this.master, f * 2, t + i * 0.09, "sine", 0.03, 0.003, 0.08);
+      }
+      for (i = 0; i < 3; i++) this._v(this.master, this._deg(10 + i * 2), t + 0.36, "sine", 0.06, 0.01, 0.3);
+    },
+    checkpoint: function () {
+      var t = this._t(); if (t < 0) return;
+      this.fanfare();
+      var r = this._deg(0);
+      this._v(this.master, r, t, "sine", 0.25, 0.005, 0.18, r / 2, 0.6);
+      for (var i = 0; i < 6; i++) this._v(this.master, this._deg(15 + ((i * 3) % 5)), t + 0.4 + i * 0.06, "sine", 0.025, 0.002, 0.1);
+    },
+    power: function () {
+      var t = this._t(); if (t < 0) return;
+      var seq = [8, 10, 12, 15];
+      for (var i = 0; i < seq.length; i++) this._v(this.master, this._deg(seq[i]), t + i * 0.045, "triangle", 0.07, 0.003, 0.05);
+      this._n(this.master, t, 0.25, 0.04, "highpass", 4000);
+    },
+    shield: function () {
+      var t = this._t(); if (t < 0) return;
+      this._v(this.master, 400, t, "sine", 0.1, 0.01, 0.12, 1400, 0.25);
+      this._v(this.master, 1760, t + 0.1, "sine", 0.03, 0.004, 0.2);
+      this._v(this.master, 2640, t + 0.1, "sine", 0.02, 0.004, 0.2);
+    },
+    warn: function () {
+      var t = this._t(); if (t < 0) return;
+      var f = this._deg(3);
+      this._v(this.master, f, t, "triangle", 0.08, 0.004, 0.035);
+      this._v(this.master, f, t + 0.16, "triangle", 0.08, 0.004, 0.035);
+    }
+  };
+
+  function capPlugin(name) {
+    return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
+  }
+  var Haptic = {
+    on: Store.get("vibe", true),
+    _v: function (p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} },
+    light:   function () { if (!this.on) return; var h = capPlugin("Haptics"); if (h && h.impact) h.impact({ style: "LIGHT" }); else this._v(8); },
+    medium:  function () { if (!this.on) return; var h = capPlugin("Haptics"); if (h && h.impact) h.impact({ style: "MEDIUM" }); else this._v(16); },
+    error:   function () { if (!this.on) return; var h = capPlugin("Haptics"); if (h && h.notification) h.notification({ type: "ERROR" }); else this._v([0, 30, 50, 30]); },
+    success: function () { if (!this.on) return; var h = capPlugin("Haptics"); if (h && h.notification) h.notification({ type: "SUCCESS" }); else this._v([0, 20, 30, 40]); }
+  };
+
+  /* 5) TOAST + ONAY (window.confirm WebView'i ve reklam ✕'ini bloke eder) */
+  var _toastT = 0;
+  function showToast(msg, ms) {
+    var el = $("toast");
+    el.textContent = msg; el.classList.add("on");
+    clearTimeout(_toastT);
+    _toastT = setTimeout(function () { el.classList.remove("on"); }, ms || 2200);
+  }
+  var _cfYes = null;
+  function askConfirm(o, yes) {
+    $("cfTitle").textContent = o.title;
+    $("cfText").textContent = o.text || "";
+    $("cfYes").textContent = o.yes || t("common.yes");
+    _cfYes = yes;
+    $("confirm").hidden = false;
+    $("cfYes").focus();
+  }
+  function closeConfirm() { $("confirm").hidden = true; _cfYes = null; }
+
+  /* 6) REKLAM (AdMob) — Enerji Bağlantısı'ndaki sınanmış modelin uyarlaması
+     ----------------------------------------------------------------------
+     Tarayıcıda / eklenti yokken sessizce no-op; ödüllü reklamın ödülü bedava verilir.
+     Eklenti VAR ama reklam hazır değilse ödül VERİLMEZ ("hazır değil" toast'ı).
+     TUZAK: showRewardInterstitialAd() sözü reklam KAPANINCA değil ödül verilince çözülür;
+     ödül bu yüzden "Dismissed" olayında teslim edilir (bkz. _consume).
+     YAYIN: AdMob konsolunda bu uygulama için birimleri oluştur, AD_UNITS.live'a yaz,
+     TEST_MODE = false yap. App ID'ler native tarafta (ADMOB_APP_ID_* sırları). */
+  var ADS_CFG = {
+    TEST_MODE: true,                 // true -> Google test reklamları. Yayında false.
+    INTERSTITIAL_EVERY: 3,           // kaç oyun bitiminde bir geçiş reklamı
+    INTERSTITIAL_MIN_RUNS: 3,        // ilk bu kadar oyunda geçiş reklamı yok (yeni oyuncuyu kaçırmamak için)
+    INTERSTITIAL_COOLDOWN_MS: 60000, // iki geçiş reklamı arası en az süre
+    CONTINUE_MIN_SCORE: 3            // bu puanın altında "devam et" teklif edilmez
+  };
+  var AD_UNITS = {
+    test: {
+      android: { interstitial: "ca-app-pub-3940256099942544/1033173712", rewarded: "ca-app-pub-3940256099942544/5354046379", banner: "ca-app-pub-3940256099942544/6300978111" },
+      ios:     { interstitial: "ca-app-pub-3940256099942544/4411468910", rewarded: "ca-app-pub-3940256099942544/6978759866", banner: "ca-app-pub-3940256099942544/2934735716" }
+    },
+    live: {   // AdMob'da "Yörünge" uygulaması için oluşturulan birimler buraya
+      android: { interstitial: "", rewarded: "", banner: "" },
+      ios:     { interstitial: "", rewarded: "", banner: "" }
+    }
+  };
+
+  var Ads = {
+    removed: Store.get("ads.removed", false),   // ileride "Reklamsız" satın alımı için kanca
+    ready: false,
+    _ids: null,
+    _int: { loaded: false, loading: false, lastAt: 0, cb: null },
+    _rew: { loaded: false, loading: false, cb: null, earned: false, wd: 0 },
+    _runs: 0, _sinceInt: 0,
+    _ban: { want: false, on: false, shown: false, h: 0 },
+    _err: "",
+
+    _plugin: function () { return capPlugin("AdMob"); },
+    _errMsg: function (e) { return (e && (e.message || e.errorMessage || e.code)) || (e ? String(e) : "?"); },
+
+    init: function () {
+      var AdMob = this._plugin();
+      if (this.removed || !AdMob) return;
+      var self = this;
+      var plat = (window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform()) || "android";
+      var pack = ADS_CFG.TEST_MODE ? AD_UNITS.test : AD_UNITS.live;
+      self._ids = pack[plat === "ios" ? "ios" : "android"] || pack.android;
+
+      var att = AdMob.requestTrackingAuthorization ? AdMob.requestTrackingAuthorization().catch(noop) : Promise.resolve();
+      att.then(function () {
+        if (!AdMob.requestConsentInfo) return;
+        return AdMob.requestConsentInfo().then(function (info) {
+          if (info && info.isConsentFormAvailable && info.status === "REQUIRED" && AdMob.showConsentForm) {
+            return AdMob.showConsentForm().catch(noop);
+          }
+        }).catch(noop);
+      }).then(function () {
+        return AdMob.initialize({ initializeForTesting: ADS_CFG.TEST_MODE });
+      }).then(function () {
+        self.ready = true;
+        self._bind(AdMob);
+        self._prepInt();
+        self._prepRew();
+        self._ban.on = !self._ban.want;   // bekleyen banner isteğini uygula
+        self.banner(self._ban.want);
+        setInterval(function () { self._prepInt(); self._prepRew(); }, 20000);
+      }).catch(function (e) { self._err = "init: " + self._errMsg(e); });
+    },
+
+    _bind: function (AdMob) {
+      var self = this;
+      var on = function (ev, fn) { try { var p = AdMob.addListener(ev, fn); if (p && p.catch) p.catch(noop); } catch (e) {} };
+      var intDone = function () {
+        self._int.loaded = false; self._int.lastAt = Date.now(); self._prepInt(); Sound.startMusic();
+        var cb = self._int.cb; self._int.cb = null; if (cb) cb();
+      };
+      on("interstitialAdLoaded",       function () { self._int.loaded = true;  self._int.loading = false; });
+      on("interstitialAdFailedToLoad", function (i) { self._int.loaded = false; self._int.loading = false; if (i && i.message) self._err = "int: " + i.message; });
+      on("interstitialAdDismissed",    intDone);
+      on("interstitialAdFailedToShow", intDone);
+
+      on("onRewardedInterstitialAdLoaded",       function () { self._rew.loaded = true;  self._rew.loading = false; });
+      on("onRewardedInterstitialAdFailedToLoad", function (i) { self._rew.loaded = false; self._rew.loading = false; if (i && i.message) self._err = "rew: " + i.message; });
+      on("onRewardedInterstitialAdReward",       function () { self._rew.earned = true; });
+      on("onRewardedInterstitialAdDismissed",    function () { self._rew.loaded = false; self._consume(false); self._prepRew(); Sound.startMusic(); });
+      on("onRewardedInterstitialAdFailedToShow", function () { self._rew.loaded = false; self._consume(true);  self._prepRew(); Sound.startMusic(); });
+
+      // Banner yüksekliği yalnız yüklenince bilinir -> menü alt boşluğunu o an aç
+      on("bannerAdSizeChanged", function (info) {
+        if (!info || !(info.height > 0)) return;
+        self._ban.h = info.height;
+        if (self._ban.on) setBannerH(info.height);
+      });
+    },
+
+    _consume: function (force) {
+      clearTimeout(this._rew.wd);
+      var cb = this._rew.cb;
+      if (!cb) return;
+      var earned = this._rew.earned;
+      this._rew.cb = null; this._rew.earned = false;
+      if (force || earned) {
+        this._int.lastAt = Date.now();   // ödüllü izlendi -> geçiş reklamını ötele
+        try { cb(); } catch (e) {}
+      }
+    },
+
+    _prepInt: function () {
+      var AdMob = this._plugin();
+      if (this.removed || !AdMob || !this._ids || !this._ids.interstitial || this._int.loaded || this._int.loading) return;
+      this._int.loading = true;
+      var self = this;
+      AdMob.prepareInterstitial({ adId: this._ids.interstitial, isTesting: ADS_CFG.TEST_MODE }).then(
+        function () { self._int.loaded = true;  self._int.loading = false; },
+        function (e) { self._int.loaded = false; self._int.loading = false; self._err = "prepInt: " + self._errMsg(e); });
+    },
+    _prepRew: function () {
+      var AdMob = this._plugin();
+      if (this.removed || !AdMob || !this._ids || !this._ids.rewarded || this._rew.loaded || this._rew.loading) return;
+      this._rew.loading = true;
+      var self = this;
+      AdMob.prepareRewardInterstitialAd({ adId: this._ids.rewarded, isTesting: ADS_CFG.TEST_MODE }).then(
+        function () { self._rew.loaded = true;  self._rew.loading = false; },
+        function (e) { self._rew.loaded = false; self._rew.loading = false; self._err = "prepRew: " + self._errMsg(e); });
+    },
+
+    runEnded: function () { this._runs++; this._sinceInt++; },
+
+    // Oyun sonu -> Tekrar / Menü geçişinde çağrılır. Reklam gösterildiyse true döner ve
+    // after() reklam kapanınca çalışır; gösterilmediyse false (çağıran hemen sürdürür).
+    maybeInterstitial: function (after) {
+      var AdMob = this._plugin();
+      if (this.removed || !this.ready || !AdMob || !this._int.loaded) { this._prepInt(); return false; }
+      if (this._runs < ADS_CFG.INTERSTITIAL_MIN_RUNS || this._sinceInt < ADS_CFG.INTERSTITIAL_EVERY) return false;
+      if (Date.now() - this._int.lastAt < ADS_CFG.INTERSTITIAL_COOLDOWN_MS) return false;
+      this._int.loaded = false; this._int.lastAt = Date.now(); this._sinceInt = 0;
+      this._int.cb = after;
+      var self = this;
+      Sound.stopMusic();
+      AdMob.showInterstitial().catch(function () {
+        self._prepInt(); Sound.startMusic();
+        var cb = self._int.cb; self._int.cb = null; if (cb) cb();
+      });
+      return true;
+    },
+
+    // Ödüllü reklam. Tarayıcıda/reklamsızda ödül hemen; hazır değilse ödül yok + toast.
+    rewarded: function (cb) {
+      var AdMob = this._plugin();
+      if (this.removed || !AdMob) { try { cb(); } catch (e) {} return; }
+      if (!this.ready || !this._rew.loaded) {
+        if (this.ready && !this._rew.loading) this._prepRew();
+        showToast(ADS_CFG.TEST_MODE && this._err ? "Reklam: " + this._err : t("toast.adNotReady"), 2800);
+        return;
+      }
+      var self = this;
+      clearTimeout(this._rew.wd);
+      this._rew.cb = cb; this._rew.earned = false; this._rew.loaded = false;
+      Sound.stopMusic();
+      AdMob.showRewardInterstitialAd().then(function () {
+        self._rew.earned = true;
+        // Yedek: "Dismissed" hiç gelmezse ödül yine teslim edilsin
+        self._rew.wd = setTimeout(function () { self._consume(false); }, 45000);
+      }, function () {
+        self._consume(true); self._prepRew(); Sound.startMusic();
+      });
+    },
+
+    // Banner yalnız menülerde; oyun sırasında gizli (yanlış dokunma + oyun alanı)
+    banner: function (want) {
+      this._ban.want = want;
+      var AdMob = this._plugin();
+      if (this.removed || !AdMob || !this.ready || !this._ids || !this._ids.banner) return;
+      if (want === this._ban.on) return;
+      this._ban.on = want;
+      if (want) {
+        var p = this._ban.shown ? AdMob.resumeBanner()
+          : AdMob.showBanner({ adId: this._ids.banner, adSize: "ADAPTIVE_BANNER", position: "BOTTOM_CENTER", isTesting: ADS_CFG.TEST_MODE });
+        this._ban.shown = true;
+        if (p && p.catch) p.catch(noop);
+        if (this._ban.h) setBannerH(this._ban.h);
+      } else {
+        if (this._ban.shown) { var q = AdMob.hideBanner(); if (q && q.catch) q.catch(noop); }
+        setBannerH(0);
+      }
+    }
+  };
+  function setBannerH(h) { document.documentElement.style.setProperty("--banner-h", h + "px"); }
+
+  /* 7) BİLDİRİM — yerel "geri dön" hatırlatıcıları, sunucu yok -------------
+     Her açılışta / öne gelişte sıfırdan planlanır: ancak oyuncu bir süredir
+     oynamadıysa tetiklenir. Varsayılan açık; izin ilk oyun sonunda istenir. */
+  var Notify = {
+    on: Store.get("notify", true),
+    IDS: [7101, 7102, 7103],
+    _p: function () { return capPlugin("LocalNotifications"); },
+    _at: function (days) { var d = new Date(); d.setDate(d.getDate() + days); d.setHours(19, 0, 0, 0); return d; },
+    plan: function () {
+      var L = this._p(), self = this;
+      if (!L) return;
+      var cancel = L.cancel({ notifications: this.IDS.map(function (id) { return { id: id }; }) });
+      (cancel && cancel.then ? cancel : Promise.resolve()).catch(noop).then(function () {
+        if (!self.on) return;
+        return L.checkPermissions().then(function (s) {
+          if (s.display === "granted") return true;
+          if (s.display === "denied") return false;
+          return L.requestPermissions().then(function (r) { return r.display === "granted"; });
+        }).then(function (ok) {
+          if (!ok) return;
+          return L.schedule({ notifications: [
+            { id: self.IDS[0], title: t("notify.title"), body: t("notify.daily"),    schedule: { at: self._at(1), allowWhileIdle: true } },
+            { id: self.IDS[1], title: t("notify.title"), body: t("notify.missions"), schedule: { at: self._at(3), allowWhileIdle: true } },
+            { id: self.IDS[2], title: t("notify.title"), body: t("notify.miss"),     schedule: { at: self._at(7), allowWhileIdle: true } }
+          ] });
+        });
+      }).catch(noop);
+    }
+  };
+
+  /* 8) EKONOMİ ----------------------------------------------------------- */
+  var wallet = Store.get("coins", 0);
+  var best = Store.get("best", 0);
+
+  /* Dünya sıralaması: Supabase RPC (kurulum ve güvenlik modeli: server/supabase.sql). Adres boşsa "yakında" der. */
+  var ONLINE_CFG = { URL: "", KEY: "" };   // Supabase proje URL'si ve anon (public) anahtar
+  var NAME_RE = /^[A-Za-z0-9ÇĞİÖŞÜçğıöşü_. -]{3,16}$/;   // sunucudaki yorunge_name_ok ile aynı (küfür listesi yalnız sunucuda)
+  function randHex(n) {
+    var a = new Uint8Array(n), s = "", i;
+    crypto.getRandomValues(a);
+    for (i = 0; i < n; i++) s += (a[i] < 16 ? "0" : "") + a[i].toString(16);
+    return s;
+  }
+  var Online = {
+    on: function () { return !!(ONLINE_CFG.URL && ONLINE_CFG.KEY); },
+    // Cihaz kimliği (UUID v4) ve gizli anahtar ilk kullanımda üretilir; sunucu anahtarın yalnız özetini tutar
+    id: function () {
+      var v = Store.get("online.id", "");
+      if (!v) {
+        var h = randHex(16);
+        v = h.slice(0, 8) + "-" + h.slice(8, 12) + "-4" + h.slice(13, 16) + "-" + (8 | (parseInt(h.charAt(16), 16) & 3)).toString(16) + h.slice(17, 20) + "-" + h.slice(20);
+        Store.set("online.id", v);
+      }
+      return v;
+    },
+    secret: function () {
+      var v = Store.get("online.secret", "");
+      if (!v) { v = randHex(24); Store.set("online.secret", v); }
+      return v;
+    },
+    name: function () { return Store.get("online.name", ""); },
+    _rpc: function (fn, body) {
+      var ctl = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+      return fetch(ONLINE_CFG.URL.replace(/\/$/, "") + "/rest/v1/rpc/" + fn, {
+        method: "POST", signal: ctl ? ctl.signal : undefined,
+        headers: { "Content-Type": "application/json", apikey: ONLINE_CFG.KEY, Authorization: "Bearer " + ONLINE_CFG.KEY },
+        body: JSON.stringify(body)
+      }).then(function (r) {
+        clearTimeout(tm);
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.json();
+      }, function (e) { clearTimeout(tm); throw e; });
+    },
+    // Adı ve en iyi puanı gönderir; sunucu {ok, err?, rank?} döner
+    submit: function (name) {
+      var sent = best;
+      return this._rpc("submit_score", { p_id: this.id(), p_secret: this.secret(), p_name: name, p_score: sent, p_sector: Store.get("bestSector", 0) })
+        .then(function (r) {
+          if (r && r.ok) { Store.set("online.name", name); Store.set("online.sent", sent); }
+          return r;
+        });
+    },
+    // Oyun sonu: gönderilmemiş rekor varsa sessizce gönderir; çevrimdışıysa sonraki oyunda yeniden dener
+    sync: function () {
+      if (!this.on() || !this.name() || best <= Store.get("online.sent", 0)) return;
+      this.submit(this.name()).catch(function () {});
+    },
+    load: function () {
+      return Promise.all([this._rpc("top_scores", { p_limit: 50 }), this.name() ? this._rpc("my_rank", { p_id: this.id() }) : []]);
+    }
+  };
+
+  // Yerel sıralama: en iyi 10 oyun. Devam ve kontrol noktası aynı oyunu (rid) sürdürür, tek satır kalır.
+  // shortcut: yalnızca bu cihaz; çevrimiçi tablo için Play Games / Game Center (mağaza hesapları) gerekir
+  var Ranks = {
+    MAX: 10, last: 0,
+    list: function () { return Store.get("scores", []); },
+    // Kaydeder ve sırasını döndürür (ilk 10 dışındaysa 0)
+    add: function (r) {
+      var L = this.list(), i, old = null;
+      for (i = 0; i < L.length; i++) if (L[i].id === r.id) old = L[i];
+      if (old && old.s >= r.s) r = old;   // kontrol noktasından dönüş puanı düşürebilir; en iyisi kalır
+      L = L.filter(function (e) { return e.id !== r.id; });
+      L.push(r);
+      L.sort(function (a, b) { return b.s - a.s || a.id - b.id; });
+      L = L.slice(0, this.MAX);
+      Store.set("scores", L);
+      this.last = r.id;
+      for (i = 0; i < L.length; i++) if (L[i].id === r.id) return i + 1;
+      return 0;
+    }
+  };
+  function addCoins(n) {
+    wallet += n; Store.set("coins", wallet);
+    var els = document.querySelectorAll(".js-coins");
+    for (var i = 0; i < els.length; i++) els[i].textContent = wallet;
+  }
+
+  var SKINS = [
+    { id: "nova",    col: "#5ef2ff", price: 0 },
+    { id: "ember",   col: "#ff8a4c", price: 150 },
+    { id: "emerald", col: "#4dffa6", price: 300 },
+    { id: "royal",   col: "#b388ff", price: 500 },
+    { id: "rose",    col: "#ff6fae", price: 800 },
+    { id: "gold",    col: "#ffd34d", price: 1200 },
+    { id: "rainbow", col: "#ffffff", price: 2000, rainbow: true },
+    { id: "void",    col: "#c9d4ff", price: 3500, spark: true }
+  ];
+  var owned = Store.get("skins", ["nova"]);
+  var skin = SKINS[0];
+  (function () { var id = Store.get("skin", "nova"); for (var i = 0; i < SKINS.length; i++) if (SKINS[i].id === id) skin = SKINS[i]; })();
+  function skinColor(i) { return skin.rainbow ? "hsl(" + ((time * 220 + i * 14) % 360) + ",100%,65%)" : skin.col; }
+
+  // Günlük görevler: her gün tarih tohumuyla aynı 3 görev (cihazda), gece yarısı yenilenir
+  var MISSION_TYPES = [
+    { type: "planets", goals: [25, 50, 90], rw: [50, 90, 150] },
+    { type: "stars",   goals: [15, 35, 70], rw: [50, 90, 150] },
+    { type: "score",   goals: [12, 22, 35], rw: [60, 100, 170], max: true },
+    { type: "runs",    goals: [3, 6, 10],   rw: [40, 70, 110] },
+    { type: "combo",   goals: [3, 4, 5],    rw: [60, 100, 170], max: true }
+  ];
+  function genMissions(day) {
+    var r = mulberry32(hashStr("m." + day)), pool = MISSION_TYPES.slice(), out = [];
+    for (var i = 0; i < 3; i++) {
+      var d = pool.splice(Math.floor(r() * pool.length), 1)[0], tier = Math.floor(r() * 3);
+      out.push({ type: d.type, goal: d.goals[tier], rw: d.rw[tier], max: !!d.max, prog: 0, claimed: false });
+    }
+    return out;
+  }
+  var Missions = {
+    list: [],
+    load: function () {
+      if (Store.get("missions.day", "") !== dayKey()) {
+        Store.set("missions.day", dayKey());
+        Store.set("missions", genMissions(dayKey()));
+      }
+      this.list = Store.get("missions", []);
+    },
+    add: function (type, v) {
+      if (Store.get("missions.day", "") !== dayKey()) this.load();   // oyun gece yarısını geçtiyse
+      var changed = false;
+      for (var i = 0; i < this.list.length; i++) {
+        var m = this.list[i];
+        if (m.type !== type || m.prog >= m.goal) continue;
+        m.prog = Math.min(m.goal, m.max ? Math.max(m.prog, v) : m.prog + v);
+        changed = true;
+        if (m.prog >= m.goal) { showToast(t("toast.mission")); Haptic.success(); }
+      }
+      if (changed) { Store.set("missions", this.list); updateBadges(); }
+    },
+    ready: function () {
+      var n = 0;
+      for (var i = 0; i < this.list.length; i++) if (this.list[i].prog >= this.list[i].goal && !this.list[i].claimed) n++;
+      return n;
+    },
+    claim: function (i) {
+      var m = this.list[i];
+      if (!m || m.claimed || m.prog < m.goal) return;
+      m.claimed = true; Store.set("missions", this.list);
+      addCoins(m.rw); Sound.fanfare(); Haptic.success();
+      showToast(t("toast.reward", { n: m.rw }));
+      updateBadges();
+    }
+  };
+
+  // Günlük ödül serisi: dün aldıysa seri sürer, bir gün kaçarsa 1. güne döner
+  var Daily = {
+    REWARDS: [25, 40, 60, 80, 100, 150, 300],
+    claimable: function () { return Store.get("daily.last", "") !== dayKey(); },
+    nextDay: function () {
+      return nextStreak(Store.get("daily.last", ""), Store.get("daily.streak", 0), dayKey(), dayKey(-1));
+    },
+    claim: function (mult) {
+      if (!this.claimable()) return;
+      var d = this.nextDay(), n = this.REWARDS[d - 1] * mult;
+      Store.set("daily.streak", d); Store.set("daily.last", dayKey());
+      addCoins(n); Sound.fanfare(); Haptic.success();
+      showToast(t("toast.reward", { n: n }));
+      updateBadges();
+    }
+  };
+  function nextStreak(last, streak, today, yesterday) {
+    if (last === today) return streak;
+    return last === yesterday ? (streak % 7) + 1 : 1;
+  }
+
+  /* 9) DÜNYA + OYUN MANTIĞI ----------------------------------------------
+     Dünya genişliği ~400 birim; y aşağı doğru artar, gezegenler yukarı (eksi y) dizilir.
+     Oyuncu yörüngede dönerken dokununca teğet yönde düz uçar; başka bir gezegenin
+     yörünge halkasına (R) girince yakalanır ve dönüş yönü geliş yönünden belirlenir. */
+  var cv = $("cv"), ctx = cv.getContext("2d");
+  var W = 400, H = 700, SCALE = 1, DPR = 1;
+  var FLY = 440;           // uçuş hızı (birim/sn)
+  var MAX_FLIGHT = 2.4;    // bu süreden uzun uçuş = boşluğa savruldun
+  // Gezegen paletleri: [ışık, ana renk, gölge]; canlı/doygun tonlar
+  var PAL = [
+    ["#ffe0b0", "#ff6a3d", "#a1124f"], ["#c8fbff", "#22b4ff", "#2a1fa8"], ["#eaffc0", "#3ee07a", "#0a6e5e"],
+    ["#ffd8ff", "#c35bff", "#4b14a8"], ["#fff6a8", "#ffb020", "#c2381a"], ["#ffd0e6", "#ff3d8b", "#7a0f6a"],
+    ["#c6fff3", "#19d9c0", "#0d4f8f"], ["#ffe4c8", "#ff8f4d", "#6b2fb5"]
+  ];
+
+  var world, player, run, camY = 0, shake = 0, time = 0;
+  var phase = "idle";      // idle (menüde, yörüngede bekler) | play | dead | paused
+  Sound.getState = function () { return { play: phase === "play", sector: run ? run.sector : 0, combo: run ? run.combo : 1 }; };
+  var particles = [], floats = [];
+  var tutDone = Store.get("tut", false);
+
+  /* Sektörler: her SECTOR_LEN gezegen bir sektör, ilk gezegeni kontrol noktası. Her sektörün
+     kendi arka plan teması (BANDS sırası) ve tehlike / özel gezegen / güçlendirme ağırlıkları var. */
+  var SECTOR_LEN = 20;
+  var SECTORS = [
+    { id: "s0", moon: 0.15, drift: 0,    hole: 0,    gold: 0.15, ice: 0,    pulsar: 0,    power: 0.12 },   // Başlangıç Kuşağı
+    { id: "s1", moon: 0.55, drift: 0.1,  hole: 0,    gold: 0.08, ice: 0.05, pulsar: 0,    power: 0.15 },   // Ay Tarlası
+    { id: "s2", moon: 0.25, drift: 0.6,  hole: 0.05, gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.15 },   // Akıntı Bulutsusu
+    { id: "s3", moon: 0.3,  drift: 0.25, hole: 0.5,  gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.17 },   // Kara Delik Vadisi
+    { id: "s4", moon: 0.35, drift: 0.3,  hole: 0.2,  gold: 0.08, ice: 0.4,  pulsar: 0.05, power: 0.17 },   // Buzul Halkalar
+    { id: "s5", moon: 0.4,  drift: 0.35, hole: 0.25, gold: 0.08, ice: 0.05, pulsar: 0.4,  power: 0.18 }    // Pulsar Fırtınası
+  ];
+  var _deep = {};
+  function sectorOf(n) { return Math.floor(n / SECTOR_LEN); }
+  // Derin uzay (6. sektörden sonrası): her sektöre tohumlu rastgele iki baskın tehlike -> her biri farklı
+  function sectorDef(s) {
+    if (s < SECTORS.length) return SECTORS[s];
+    if (_deep[s]) return _deep[s];
+    var r = mulberry32(hashStr("deep." + s)), keys = ["moon", "drift", "hole", "ice", "pulsar"];
+    var d = { id: "deep", moon: 0.35, drift: 0.3, hole: 0.3, gold: 0.07, ice: 0.1, pulsar: 0.1, power: 0.18 };
+    for (var i = 0; i < 2; i++) d[keys.splice(Math.floor(r() * keys.length), 1)[0]] = 0.6;
+    return (_deep[s] = d);
+  }
+  function sectorName(s) { return s < SECTORS.length ? t("sector." + SECTORS[s].id) : t("sector.deep") + " " + (s - SECTORS.length + 1); }
+
+  // Özel gezegen paletleri
+  var KIND_PAL = {
+    cp:     ["#fff6d0", "#ffc94d", "#c2381a"],
+    gold:   ["#fffbe0", "#ffd34d", "#b86b00"],
+    ice:    ["#ffffff", "#a8e8ff", "#3a6fd8"],
+    pulsar: ["#ffe6ff", "#ff4df0", "#5a0aa0"]
+  };
+  var POWER_TYPES = ["shield", "magnet", "x2"];
+  var POWERS = { shield: { col: "#5ef2ff" }, magnet: { col: "#ff5dc8", dur: 10 }, x2: { col: "#ffd34d", dur: 12 } };
+
+  function addPlanet() {
+    var n = world.n++, prev = world.planets[world.planets.length - 1];
+    var sd = sectorDef(sectorOf(n)), cp = n > 0 && n % SECTOR_LEN === 0;
+    var p = { n: n, x: W / 2, y: 0, r: 30, R: 0, x0: 0, ws: 0, moon: null, drift: null, visited: !prev, pulse: 0,
+              pal: PAL[(n * 3 + rndInt(2)) % PAL.length], ringed: rnd() < 0.3, cp: cp, kind: "normal" };
+    if (!cp && n > 2) {
+      var roll = rnd();
+      if (roll < sd.gold) p.kind = "gold";
+      else if (roll < sd.gold + sd.ice) p.kind = "ice";
+      else if (roll < sd.gold + sd.ice + sd.pulsar) p.kind = "pulsar";
+    }
+    if (cp) { p.pal = KIND_PAL.cp; p.ringed = true; }
+    else if (p.kind !== "normal") p.pal = KIND_PAL[p.kind];
+    if (prev && !cp) p.r = n > 15 && rnd() < 0.3 ? 17 + rnd() * 5 : 22 + rnd() * 14;
+    p.R = p.r + 32 + rnd() * 8;
+    if (prev) {
+      var gap = 165 + Math.min(n * 2.2, 85) + rnd() * 40, m = p.R + 10;
+      p.x = clamp(prev.x0 + (rnd() - 0.5) * Math.min(W * 0.85, 340), m, W - m);
+      p.y = prev.y - gap;
+    }
+    p.x0 = p.x;
+    p.ws = Math.min(2.1 + n * 0.035, 3.9) + rnd() * 0.4;
+    if (cp) p.ws = 1.9;                         // kontrol noktası: yavaş ve güvenli
+    if (p.kind === "ice") p.ws *= 0.55;
+    if (p.kind === "pulsar") p.ws *= 1.45;
+    if (!cp && n >= 10 && rnd() < sd.moon) {
+      p.moon = { a: rnd() * TAU, w: (rnd() < 0.5 ? -1 : 1) * p.ws * 0.55 };
+    }
+    if (!cp && rnd() < sd.drift) {
+      var amp = 30 + rnd() * 40, m2 = p.R + amp + 8;
+      if (W - 2 * m2 > 0) { p.x0 = clamp(p.x0, m2, W - m2); p.drift = { amp: amp, sp: 0.6 + rnd() * 0.7, ph: rnd() * TAU }; }
+    }
+    if (prev) {
+      var mx = (prev.x0 + p.x0) / 2, my = (prev.y + p.y) / 2, ox = (rnd() - 0.5) * 90;
+      if (rnd() < 0.78) {
+        var cnt = rnd() < 0.3 ? 3 : 1;
+        for (var i = 0; i < cnt; i++) world.coins.push({ x: mx + ox, y: my + (i - (cnt - 1) / 2) * 26, ph: rnd() * TAU });
+      }
+      if (n >= 3 && rnd() < sd.power) {
+        world.powers.push({ x: clamp(mx - ox * 1.4 + (ox >= 0 ? -30 : 30), 30, W - 30), y: my + (rnd() - 0.5) * 30,
+                            type: POWER_TYPES[rndInt(POWER_TYPES.length)], ph: rnd() * TAU });
+      }
+      if (rnd() < sd.hole) {
+        var h = { x: clamp(mx + (rnd() < 0.5 ? -1 : 1) * (70 + rnd() * 50), 30, W - 30), y: my + (rnd() - 0.5) * 40, r: 13 + rnd() * 5 };
+        if (Math.hypot(h.x - prev.x0, h.y - prev.y) > prev.R + h.r + 30 + (prev.drift ? prev.drift.amp : 0) &&
+            Math.hypot(h.x - p.x0, h.y - p.y) > p.R + h.r + 30 + (p.drift ? p.drift.amp : 0)) world.holes.push(h);
+      }
+    }
+    p.spr = planetSprite(p);
+    world.planets.push(p);
+  }
+
+  // startN > 0: o gezegenden (bir kontrol noktasından) başlayan dünya
+  function newWorld(startN) {
+    startN = startN || 0;
+    world = { planets: [], coins: [], holes: [], powers: [], n: startN };
+    particles.length = 0; floats.length = 0;
+    addPlanet();
+    var p0 = world.planets[0];
+    player = { st: "orbit", p: p0, from: null, last: p0, a: -Math.PI / 2, dir: 1, x: p0.x, y: p0.y - p0.R,
+               vx: 0, vy: 0, ft: 0, ot: 0, grace: 0, quick: false, trail: [] };
+    run = { score: 0, combo: 1, maxCombo: 1, coins: 0, planets: 0, continued: false, doubled: false, counted: false, reason: "void",
+            sector: sectorOf(startN), cp: startN ? { n: startN, score: 0, planets: 0 } : null, cpUsed: 0, banner: false,
+            shield: false, magnetT: 0, x2T: 0, rid: Date.now() };
+    camY = p0.y - H * 0.68;
+    ensureAhead(camY);
+    updateHud(true);
+    updatePowersHud(true);
+  }
+  // Menüde seçili başlangıç sektörüyle yeni dünya
+  function freshWorld() { newWorld(startSector() * SECTOR_LEN); }
+  function startSector() { return clamp(Store.get("startSector", 0), 0, Store.get("cp.max", 0)); }
+
+  // Kontrol noktasından yeniden: puan ve gezegen sayısı kontrol noktasındaki değere döner
+  function restartFromCheckpoint() {
+    var keep = run;
+    newWorld(keep.cp.n);
+    run.score = keep.cp.score; run.planets = keep.cp.planets; run.coins = keep.coins; run.maxCombo = keep.maxCombo;
+    run.cp = keep.cp; run.cpUsed = keep.cpUsed + 1; run.rid = keep.rid; run.continued = keep.continued; run.doubled = keep.doubled;
+    updateHud(true);
+    phase = "idle";
+    startPlay();
+  }
+
+  // Son gezegenin yörüngesine güvenle geri koy (reklamlı devam + kalkan)
+  function rescue() {
+    var q = player.last;
+    player.st = "orbit"; player.p = q; player.from = null;
+    player.a = q.moon ? q.moon.a + Math.PI : -Math.PI / 2;
+    player.dir = 1; player.ot = 0; player.grace = 1.5; player.trail = []; player.warned = false;
+    player.x = q.x + Math.cos(player.a) * q.R; player.y = q.y + Math.sin(player.a) * q.R;
+    burst(player.x, player.y, "#ffffff", 24, 200);
+  }
+
+  function ensureAhead(cam) {
+    while (world.planets[world.planets.length - 1].y > cam - H * 0.9) addPlanet();
+    var lim = cam + H + 260, keep = [], i;
+    for (i = 0; i < world.planets.length; i++) {
+      var q = world.planets[i];
+      if (q.y < lim || q === player.p || q === player.from || q === player.last) keep.push(q);
+    }
+    world.planets = keep;
+    world.coins = world.coins.filter(function (c) { return c.y < lim && !c.taken; });
+    world.holes = world.holes.filter(function (h) { return h.y < lim; });
+    world.powers = world.powers.filter(function (w) { return w.y < lim && !w.taken; });
+  }
+
+  function startPlay() {
+    if (phase === "play") return;
+    Sound.ensure(); Sound.startMusic();
+    phase = "play";
+    player.ot = 0; player.warned = false;
+    showScreen(null);
+    $("tut").hidden = tutDone;
+    if (!run.banner) { run.banner = true; showSectorBanner(run.sector, false); }
+  }
+
+  var _bannerT = 0;
+  function showSectorBanner(s, isCp) {
+    var el = $("sectorBanner");
+    $("sbTop").textContent = (isCp ? t("cp.reached") + " · " : "") + t("sector.label", { n: s + 1 });
+    $("sbName").textContent = sectorName(s);
+    el.classList.toggle("cp", !!isCp);
+    el.hidden = false; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+    clearTimeout(_bannerT);
+    _bannerT = setTimeout(function () { el.hidden = true; }, 2600);
+  }
+
+  // 0 = güvenli, 0..1 = çöküş uyarısı (3. tur), 1 = çöktü
+  function orbitWarn(q, ot) { var turn = TAU / q.ws; return clamp((ot - 2 * turn) / turn, 0, 1); }
+
+  function launch() {
+    var P = player;
+    if (phase !== "play" || P.st !== "orbit") return;
+    P.quick = P.ot < Math.PI / P.p.ws;          // yarım turdan önce atladıysa "hızlı" -> kombo sürer
+    P.vx = -Math.sin(P.a) * P.dir * FLY;
+    P.vy = Math.cos(P.a) * P.dir * FLY;
+    P.from = P.p; P.p = null; P.st = "fly"; P.ft = 0;
+    Sound.jump(); Haptic.light();
+    burst(P.x, P.y, skinColor(0), 6, 80);
+  }
+
+  function capture(q, dx, dy) {
+    var P = player;
+    P.dir = (dx * P.vy - dy * P.vx) >= 0 ? 1 : -1;   // çapraz çarpım işareti = açının artış yönü
+    P.a = Math.atan2(dy, dx);
+    P.st = "orbit"; P.p = q; P.last = q; P.ot = 0; P.grace = 0.35; P.warned = false;
+    q.pulse = 1;
+    if (q.visited) { Sound.land(1, true); return; }
+    q.visited = true;
+    run.planets++;
+    run.combo = P.quick ? Math.min(run.combo + 1, 5) : 1;
+    var gain = run.combo * (run.x2T > 0 ? 2 : 1) + (q.kind === "pulsar" ? 1 : 0);
+    run.score += gain;
+    if (run.combo > run.maxCombo) run.maxCombo = run.combo;
+    floatText(q.x, q.y - q.R - 14, "+" + gain, run.combo > 1 || run.x2T > 0 ? "#ffd34d" : "#ffffff", 20 + run.combo * 2);
+    if (q.kind === "gold") {
+      run.coins += 5; addCoins(5); Missions.add("stars", 5); Sound.coin();
+      floatText(q.x, q.y + q.R + 16, t("toast.reward", { n: 5 }), "#ffd34d", 17);
+      burst(q.x, q.y, "#ffd34d", 24, 200);
+    }
+    if (q.cp) reachCheckpoint(q);
+    if (run.combo >= 2) floatText(q.x, q.y - q.R - 40, t(run.combo >= 5 ? "combo.legend" : run.combo >= 3 ? "combo.perfect" : "combo.quick"), "#5ef2ff", 18);
+    Sound.land(run.combo); Haptic.medium();
+    burst(P.x, P.y, skinColor(0), 14, 160);
+    burst(P.x, P.y, q.pal[0], 10, 120);
+    if (run.combo >= 3 && !reduceMotion) { flash.a = 0.08 + run.combo * 0.02; flash.c = run.combo >= 5 ? "255,93,200" : "255,211,77"; }
+    if (!tutDone) { tutDone = true; Store.set("tut", true); $("tut").hidden = true; }
+    Missions.add("planets", 1);
+    Missions.add("score", run.score);
+    Missions.add("combo", run.combo);
+    updateHud();
+  }
+
+  function reachCheckpoint(q) {
+    var s = sectorOf(q.n);
+    run.cp = { n: q.n, score: run.score, planets: run.planets };
+    run.sector = s;
+    if (s > Store.get("cp.max", 0)) Store.set("cp.max", s);
+    showSectorBanner(s, true);
+    Sound.checkpoint(); Haptic.success();
+    burst(q.x, q.y, "#ffd34d", 36, 260);
+    if (!reduceMotion) { flash.a = 0.18; flash.c = "255,211,77"; }
+  }
+
+  // Kalkan, bir ölümü önler ve son gezegene geri koyar
+  function die(reason) {
+    var P = player;
+    if (phase !== "play") return;
+    if (run.shield) {
+      run.shield = false;
+      burst(P.x, P.y, "#5ef2ff", 30, 220);
+      rescue();
+      floatText(player.x, player.y - 30, t("shield.saved"), "#5ef2ff", 18);
+      Sound.shield(); Haptic.success();
+      updatePowersHud();
+      return;
+    }
+    phase = "dead"; P.st = "dead"; run.reason = reason;
+    $("tut").hidden = true;
+    Sound.die(); Haptic.error();
+    burst(P.x, P.y, skinColor(0), 40, 260); burst(P.x, P.y, "#ffffff", 18, 180);
+    shake = 14;
+    setTimeout(showGameOver, 950);
+  }
+
+  function stepPlayer(dt) {
+    var P = player, i, q;
+    if (P.st === "orbit") {
+      q = P.p;
+      P.a += P.dir * q.ws * dt; P.ot += dt;
+      P.x = q.x + Math.cos(P.a) * q.R; P.y = q.y + Math.sin(P.a) * q.R;
+      // yörünge çökmesi: 2 tur güvenli, 3. turda uyarı, sonunda ölüm (sonsuz beklemeyi önler)
+      if (phase === "play" && tutDone) {   // öğretici bitmeden çökme yok
+        var w = orbitWarn(q, P.ot);
+        if (w > 0 && !P.warned) { P.warned = true; Haptic.light(); Sound.warn(); }
+        if (w >= 1) return die("decay");
+      }
+    } else if (P.st === "fly") {
+      // ≤4 birimlik alt adımlar: halkayı sıyıran atış iki kare arasında kaçmasın
+      var steps = Math.ceil(FLY * dt / 4), sdt = dt / steps;
+      for (var k = 0; k < steps && P.st === "fly"; k++) flyStep(sdt);
+      if (P.st === "dead") return;
+    } else return;
+    if (P.grace > 0) P.grace -= dt;
+    if (phase === "play" && P.grace <= 0) {
+      for (i = 0; i < world.planets.length; i++) {
+        q = world.planets[i];
+        if (!q.moon) continue;
+        var mx = q.x + Math.cos(q.moon.a) * q.R, my = q.y + Math.sin(q.moon.a) * q.R;
+        if (Math.hypot(mx - P.x, my - P.y) < 15) { die("moon"); return; }
+      }
+    }
+    P.trail.push(P.x, P.y);
+    if (P.trail.length > 48) P.trail.splice(0, 2);
+  }
+
+  function flyStep(dt) {
+    var P = player, i, q, dx, dy;
+    P.ft += dt; P.x += P.vx * dt; P.y += P.vy * dt;
+    for (i = 0; i < world.coins.length; i++) {
+      var c = world.coins[i];
+      if (!c.taken && Math.abs(c.x - P.x) < 20 && Math.abs(c.y - P.y) < 20) takeCoin(c);
+    }
+    for (i = 0; i < world.powers.length; i++) {
+      var pw = world.powers[i];
+      if (!pw.taken && Math.abs(pw.x - P.x) < 24 && Math.abs(pw.y - P.y) < 24) takePower(pw);
+    }
+    for (i = 0; i < world.planets.length; i++) {
+      q = world.planets[i];
+      if (q === P.from && P.ft < 0.25) continue;     // kalkış anında kendi halkasına geri yakalanmasın
+      dx = P.x - q.x; dy = P.y - q.y;
+      if (dx * dx + dy * dy <= q.R * q.R) { capture(q, dx, dy); return; }
+    }
+    if (phase !== "play") return;
+    for (i = 0; i < world.holes.length; i++) {
+      var h = world.holes[i];
+      if (Math.hypot(h.x - P.x, h.y - P.y) < h.r + 5) return die("hole");
+    }
+    if (P.ft > MAX_FLIGHT || P.x < -40 || P.x > W + 40 || P.y > camY + H + 40 || P.y < camY - 140) die("void");
+  }
+
+  function takeCoin(c) {
+    c.taken = true; run.coins++; addCoins(1); Missions.add("stars", 1);
+    Sound.coin(); burst(c.x, c.y, "#ffd34d", 8, 120); floatText(c.x, c.y - 10, "+1", "#ffd34d", 15);
+  }
+
+  function takePower(pw) {
+    pw.taken = true;
+    if (pw.type === "shield") run.shield = true;
+    else if (pw.type === "magnet") run.magnetT = POWERS.magnet.dur;
+    else run.x2T = POWERS.x2.dur;
+    var col = POWERS[pw.type].col;
+    floatText(pw.x, pw.y - 18, t("power." + pw.type), col, 18);
+    burst(pw.x, pw.y, col, 20, 180);
+    Sound.power();
+    Haptic.success();
+    updatePowersHud();
+  }
+
+  // Güçlendirme süreleri + mıknatıs çekimi (yalnız oyun sırasında)
+  function updatePowers(dt) {
+    if (phase !== "play") return;
+    if (run.x2T > 0) run.x2T = Math.max(0, run.x2T - dt);
+    if (run.magnetT > 0) {
+      run.magnetT = Math.max(0, run.magnetT - dt);
+      for (var i = 0; i < world.coins.length; i++) {
+        var c = world.coins[i];
+        if (c.taken) continue;
+        var dx = player.x - c.x, dy = player.y - c.y, d = Math.hypot(dx, dy);
+        if (d < 22) takeCoin(c);
+        else if (d < 190) { c.x += dx / d * 420 * dt; c.y += dy / d * 420 * dt; }
+      }
+    }
+    updatePowersHud();
+  }
+
+  function update(dt) {
+    time += dt;
+    var i, q;
+    updatePowers(dt);
+    for (i = 0; i < world.planets.length; i++) {
+      q = world.planets[i];
+      if (q.drift) q.x = q.x0 + Math.sin(time * q.drift.sp + q.drift.ph) * q.drift.amp;
+      if (q.moon) q.moon.a += q.moon.w * dt;
+      if (q.pulse > 0) q.pulse = Math.max(0, q.pulse - dt * 1.6);
+    }
+    if (phase === "play" || phase === "idle") stepPlayer(dt);
+    else if (phase === "dead" && player.trail.length) player.trail.splice(0, 2);
+
+    var anchor = player.p || player.from || player.last;
+    camY += (anchor.y - H * 0.68 - camY) * (1 - Math.exp(-3.2 * dt));
+    ensureAhead(camY);
+
+    for (i = particles.length - 1; i >= 0; i--) {
+      var pt = particles[i];
+      pt.life -= dt; if (pt.life <= 0) { particles.splice(i, 1); continue; }
+      pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vx *= 0.96; pt.vy *= 0.96;
+    }
+    for (i = floats.length - 1; i >= 0; i--) {
+      var f = floats[i];
+      f.life -= dt; f.y -= 36 * dt;
+      if (f.life <= 0) floats.splice(i, 1);
+    }
+    if (shake > 0) shake = Math.max(0, shake - dt * 40);
+    lerpBg(dt);
+  }
+
+  function burst(x, y, col, n, sp) {
+    if (reduceMotion) n = Math.ceil(n / 3);
+    for (var i = 0; i < n; i++) {
+      var a = rnd() * TAU, s = sp * (0.3 + rnd() * 0.7);
+      particles.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 + rnd() * 0.5, col: col, r: 1.5 + rnd() * 2.5 });
+    }
+    if (particles.length > 400) particles.splice(0, particles.length - 400);
+  }
+  function floatText(x, y, txt, col, size) { floats.push({ x: x, y: y, txt: txt, col: col, size: size, life: 1 }); }
+
+  /* 10) ÇİZİM ------------------------------------------------------------ */
+  function planetSprite(p) {
+    var f = 3, S = Math.ceil(p.r * 3.2 * f), c = document.createElement("canvas");
+    c.width = c.height = S;
+    var g = c.getContext("2d"), cx = S / 2, R = p.r * f, pal = p.pal, i;
+    var glow = g.createRadialGradient(cx, cx, R * 0.8, cx, cx, R * 1.6);
+    glow.addColorStop(0, hexA(pal[1], 0.55)); glow.addColorStop(0.5, hexA(pal[1], 0.18)); glow.addColorStop(1, hexA(pal[1], 0));
+    g.fillStyle = glow; g.fillRect(0, 0, S, S);
+    var ring = function (a0, a1) {
+      g.beginPath(); g.ellipse(cx, cx, R * 1.45, R * 0.36, -0.35, a0, a1);
+      g.strokeStyle = hexA(pal[0], 0.75); g.lineWidth = R * 0.11; g.stroke();
+    };
+    if (p.ringed) ring(Math.PI, TAU);
+    var body = g.createRadialGradient(cx - R * 0.35, cx - R * 0.4, R * 0.1, cx, cx, R);
+    body.addColorStop(0, pal[0]); body.addColorStop(0.55, pal[1]); body.addColorStop(1, pal[2]);
+    g.save();
+    g.beginPath(); g.arc(cx, cx, R, 0, TAU); g.fillStyle = body; g.fill(); g.clip();
+    g.globalAlpha = 0.16;
+    for (i = 0; i < 4; i++) {
+      g.fillStyle = i % 2 ? "#ffffff" : pal[2];
+      g.fillRect(0, cx - R + (i * 0.5 + rnd() * 0.3) * R, S, R * (0.08 + rnd() * 0.14));
+    }
+    g.globalAlpha = 0.22;
+    for (i = 0; i < 3; i++) {
+      g.beginPath(); g.arc(cx + (rnd() - 0.5) * R, cx + (rnd() - 0.5) * R, R * (0.08 + rnd() * 0.12), 0, TAU);
+      g.fillStyle = pal[2]; g.fill();
+    }
+    g.globalAlpha = 1;
+    var sh = g.createRadialGradient(cx - R * 0.5, cx - R * 0.5, R * 0.3, cx, cx, R * 1.2);
+    sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(10,0,30,.5)");
+    g.fillStyle = sh; g.fillRect(0, 0, S, S);
+    // parlama noktası
+    var sp = g.createRadialGradient(cx - R * 0.42, cx - R * 0.45, 0, cx - R * 0.42, cx - R * 0.45, R * 0.45);
+    sp.addColorStop(0, "rgba(255,255,255,.55)"); sp.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = sp; g.fillRect(0, 0, S, S);
+    g.restore();
+    // atmosfer kenar ışığı (aydınlık tarafta)
+    g.beginPath(); g.arc(cx, cx, R - R * 0.03, Math.PI * 0.85, Math.PI * 1.75);
+    g.strokeStyle = hexA(pal[0], 0.7); g.lineWidth = R * 0.06; g.lineCap = "round"; g.stroke();
+    if (p.ringed) ring(0, Math.PI);
+    return c;
+  }
+
+  var _glow = {};
+  function glowSprite(col) {
+    if (_glow[col]) return _glow[col];
+    var S = 64, c = document.createElement("canvas"); c.width = c.height = S;
+    var g = c.getContext("2d"), gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    gr.addColorStop(0, hexA(col, 0.9)); gr.addColorStop(0.35, hexA(col, 0.35)); gr.addColorStop(1, hexA(col, 0));
+    g.fillStyle = gr; g.fillRect(0, 0, S, S);
+    return (_glow[col] = c);
+  }
+
+  // Her 15 puanda bir arka plan teması değişir (ilerleme hissi)
+  // a: üst, b: alt gök rengi; n / m: iki nebula rengi
+  var BANDS = [
+    { a: [10, 10, 52],  b: [52, 30, 140],  n: [40, 190, 255],  m: [255, 70, 200] },
+    { a: [26, 6, 60],   b: [120, 26, 150], n: [190, 100, 255], m: [255, 120, 80] },
+    { a: [2, 28, 52],   b: [8, 120, 140],  n: [50, 255, 190],  m: [90, 120, 255] },
+    { a: [44, 6, 36],   b: [160, 30, 96],  n: [255, 80, 150],  m: [255, 200, 70] },
+    { a: [36, 14, 8],   b: [150, 64, 24],  n: [255, 190, 60],  m: [255, 70, 90] },
+    { a: [4, 30, 26],   b: [16, 112, 80],  n: [120, 255, 130], m: [70, 190, 255] }
+  ];
+  var bg = { a: BANDS[0].a.slice(), b: BANDS[0].b.slice(), n: BANDS[0].n.slice(), m: BANDS[0].m.slice() };
+  function lerpBg(dt) {
+    var tb = BANDS[run.sector % BANDS.length], k = 1 - Math.exp(-1.2 * dt);   // her sektörün kendi teması
+    for (var i = 0; i < 3; i++) {
+      bg.a[i] += (tb.a[i] - bg.a[i]) * k; bg.b[i] += (tb.b[i] - bg.b[i]) * k;
+      bg.n[i] += (tb.n[i] - bg.n[i]) * k; bg.m[i] += (tb.m[i] - bg.m[i]) * k;
+    }
+  }
+  function rgb(c, a) { return "rgba(" + (c[0] | 0) + "," + (c[1] | 0) + "," + (c[2] | 0) + "," + (a === undefined ? 1 : a) + ")"; }
+
+  var STARS = [], WARP = [], NEB = [], i0;
+  var STAR_COLS = ["#ffffff", "#ffffff", "#bfeaff", "#ffd6f5", "#fff1b8", "#c9ffe9"];
+  for (i0 = 0; i0 < 160; i0++) STARS.push({ x: rnd(), y: rnd(), z: 0.15 + rnd() * 0.85, tw: rnd() * TAU, c: STAR_COLS[rndInt(STAR_COLS.length)] });
+  for (i0 = 0; i0 < 170; i0++) WARP.push({ a: rnd() * TAU, d: rnd(), sp: 0.3 + rnd() * 0.9 });
+  for (i0 = 0; i0 < 5; i0++) NEB.push({ x: 0.1 + rnd() * 0.8, y: i0 / 5 + rnd() * 0.15, r: 0.55 + rnd() * 0.45, m: i0 % 2 });
+  var shoot = { t: 2 + rnd() * 3, x: 0, y: 0, vx: 0, vy: 0, life: 0 };   // kayan yıldız
+  var flash = { a: 0, c: "255,211,77" };                                // tam ekran renk parlaması
+
+  var intro = { t: 0, after: 0, on: true, dur: reduceMotion ? 1.2 : 3.6 };
+  function warpLevel() {
+    if (!intro.on || reduceMotion) return 0;
+    return intro.t < 1.4 ? 1 : Math.max(0, 1 - (intro.t - 1.4) / 1.4);
+  }
+
+  function drawBackground(dt) {
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, rgb(bg.a)); g.addColorStop(1, rgb(bg.b));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    var i, s, py;
+    for (i = 0; i < NEB.length; i++) {
+      s = NEB[i];
+      py = ((s.y * H * 2 - camY * 0.12) % (H * 2) + H * 2) % (H * 2) - H * 0.5;
+      var rr = s.r * W, nc = s.m ? bg.m : bg.n, ng = ctx.createRadialGradient(s.x * W, py, 0, s.x * W, py, rr);
+      ng.addColorStop(0, rgb(nc, 0.26)); ng.addColorStop(0.45, rgb(nc, 0.1)); ng.addColorStop(1, rgb(nc, 0));
+      ctx.fillStyle = ng; ctx.fillRect(s.x * W - rr, py - rr, rr * 2, rr * 2);
+    }
+    for (i = 0; i < STARS.length; i++) {
+      s = STARS[i];
+      py = ((s.y * H - camY * s.z * 0.3) % H + H) % H;
+      ctx.globalAlpha = (0.3 + 0.6 * s.z) * (0.7 + 0.3 * Math.sin(time * 2.2 + s.tw));
+      var sz = 0.7 + s.z * 1.7;
+      ctx.fillStyle = s.c; ctx.fillRect(s.x * W, py, sz, sz);
+      if (s.z > 0.9) { ctx.globalAlpha *= 0.5; ctx.fillRect(s.x * W - sz, py + sz / 2 - 0.4, sz * 3, 0.8); ctx.fillRect(s.x * W + sz / 2 - 0.4, py - sz, 0.8, sz * 3); }
+    }
+    ctx.globalAlpha = 1;
+    // kayan yıldız: birkaç saniyede bir ekranın üst yarısından geçer
+    shoot.t -= dt;
+    if (shoot.t <= 0 && !reduceMotion) {
+      shoot.t = 4 + rnd() * 6; shoot.life = 1;
+      shoot.x = rnd() * W; shoot.y = rnd() * H * 0.45;
+      var sa = Math.PI * (0.15 + rnd() * 0.2) * (rnd() < 0.5 ? 1 : -1) + (rnd() < 0.5 ? 0 : Math.PI);
+      shoot.vx = Math.cos(sa) * 520; shoot.vy = Math.abs(Math.sin(sa)) * 520;
+    }
+    if (shoot.life > 0) {
+      shoot.life -= dt * 1.4; shoot.x += shoot.vx * dt; shoot.y += shoot.vy * dt;
+      var sg = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx * 0.16, shoot.y - shoot.vy * 0.16);
+      sg.addColorStop(0, "rgba(255,255,255," + Math.max(0, shoot.life) + ")"); sg.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.strokeStyle = sg; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.vx * 0.16, shoot.y - shoot.vy * 0.16); ctx.stroke();
+    }
+    // Açılış: ışık hızı çizgileri
+    var wl = warpLevel();
+    if (wl > 0) {
+      var cx = W / 2, cy = H * 0.45, maxR = Math.hypot(W, H) * 0.6;
+      var WCOL = ["#8ff6ff", "#c9a8ff", "#ff9fe0"];
+      ctx.lineWidth = 1.6; ctx.lineCap = "round";
+      ctx.globalAlpha = Math.min(1, wl * 1.5) * 0.85;
+      for (var ci = 0; ci < 3; ci++) {
+        ctx.strokeStyle = WCOL[ci];
+        ctx.beginPath();
+        for (i = ci; i < WARP.length; i += 3) {
+          s = WARP[i];
+          s.d += s.sp * dt * (0.15 + 2.2 * wl) * (0.2 + s.d);
+          if (s.d > 1.2) { s.d = 0.02 + rnd() * 0.1; s.a = rnd() * TAU; }
+          var r1 = s.d * maxR, r2 = r1 * (1 + 0.04 + 0.35 * wl);
+          ctx.moveTo(cx + Math.cos(s.a) * r1, cy + Math.sin(s.a) * r1);
+          ctx.lineTo(cx + Math.cos(s.a) * r2, cy + Math.sin(s.a) * r2);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawWorld() {
+    var i, q, P = player;
+    // kara delikler
+    for (i = 0; i < world.holes.length; i++) {
+      var h = world.holes[i], hg = ctx.createRadialGradient(h.x, h.y, h.r * 0.3, h.x, h.y, h.r * 2.6);
+      hg.addColorStop(0, "rgba(0,0,0,1)"); hg.addColorStop(0.35, "rgba(40,0,60,.9)"); hg.addColorStop(0.6, "rgba(180,60,255,.25)"); hg.addColorStop(1, "rgba(180,60,255,0)");
+      ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(h.x, h.y, h.r * 2.6, 0, TAU); ctx.fill();
+      ctx.strokeStyle = "rgba(230,170,255,.7)"; ctx.lineWidth = 2;
+      for (var k = 0; k < 2; k++) {
+        ctx.beginPath(); ctx.arc(h.x, h.y, h.r * (1.25 + k * 0.45), time * (2.4 - k) + k * 2, time * (2.4 - k) + k * 2 + 2.2); ctx.stroke();
+      }
+      ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, TAU); ctx.fill();
+    }
+    // yörünge halkaları
+    // yörünge halkaları: gezegenin kendi renginde; aktif halka ışıldar
+    for (i = 0; i < world.planets.length; i++) {
+      q = world.planets[i];
+      var act = P.p === q;
+      if (act) {
+        ctx.setLineDash([]); ctx.lineWidth = 7; ctx.strokeStyle = hexA(q.pal[1], 0.18);
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.R, 0, TAU); ctx.stroke();
+      }
+      ctx.setLineDash([6, 8]); ctx.lineDashOffset = -time * 14; ctx.lineWidth = act ? 2 : 1.6;
+      ctx.strokeStyle = act ? hexA(q.pal[0], 0.9) : hexA(q.pal[1], q.visited ? 0.2 : 0.55);
+      var warn = act && phase === "play" && tutDone ? orbitWarn(q, P.ot) : 0;
+      if (warn > 0) { ctx.strokeStyle = "rgba(255,70,110," + (0.55 + 0.45 * Math.sin(time * (10 + warn * 14))) + ")"; ctx.lineWidth = 2 + warn * 3; }
+      ctx.beginPath(); ctx.arc(q.x, q.y, q.R, 0, TAU); ctx.stroke();
+      if (q.pulse > 0) {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = hexA(q.pal[0], q.pulse * 0.9); ctx.lineWidth = 2 + q.pulse * 4;
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.R + (1 - q.pulse) * 46, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = hexA(q.pal[1], q.pulse * 0.5); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.R + (1 - q.pulse) * 22, 0, TAU); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+    // gezegenler + aylar
+    for (i = 0; i < world.planets.length; i++) {
+      q = world.planets[i];
+      var S = q.r * 3.2;
+      if (q.kind === "pulsar") {   // nabız gibi atan ışık
+        var ps = S * (1.25 + 0.25 * Math.sin(time * 7));
+        ctx.drawImage(glowSprite("#ff4df0"), q.x - ps / 2, q.y - ps / 2, ps, ps);
+      }
+      ctx.drawImage(q.spr, q.x - S / 2, q.y - S / 2, S, S);
+      if (q.kind === "gold" && !q.visited && rnd() < 0.08) burst(q.x + (rnd() - 0.5) * q.r * 2, q.y + (rnd() - 0.5) * q.r * 2, "#fff3b0", 1, 30);
+      if (q.cp) drawCheckpoint(q);
+      if (q.moon) {
+        var mx = q.x + Math.cos(q.moon.a) * q.R, my = q.y + Math.sin(q.moon.a) * q.R;
+        var mg = 34 + Math.sin(time * 6) * 6;   // nabız: tehlike uyarısı
+        ctx.drawImage(glowSprite("#ff3d6e"), mx - mg / 2, my - mg / 2, mg, mg);
+        ctx.fillStyle = "#d9d4e6"; ctx.beginPath(); ctx.arc(mx, my, 8, 0, TAU); ctx.fill();
+        ctx.fillStyle = "#9c95ad"; ctx.beginPath(); ctx.arc(mx + 2, my + 2, 2.4, 0, TAU); ctx.arc(mx - 3, my - 1, 1.6, 0, TAU); ctx.fill();
+      }
+    }
+    // yıldızlar (para)
+    var gs = glowSprite("#ffd34d");
+    for (i = 0; i < world.coins.length; i++) {
+      var c = world.coins[i];
+      if (c.taken) continue;
+      var s = 1 + Math.sin(time * 4 + c.ph) * 0.15;
+      ctx.drawImage(gs, c.x - 21 * s, c.y - 21 * s, 42 * s, 42 * s);
+      ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(time * 1.5 + c.ph); ctx.scale(s, s);
+      ctx.fillStyle = "#fff8d6";
+      ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(2.4, -2.4); ctx.lineTo(9, 0); ctx.lineTo(2.4, 2.4);
+      ctx.lineTo(0, 9); ctx.lineTo(-2.4, 2.4); ctx.lineTo(-9, 0); ctx.lineTo(-2.4, -2.4); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    // güçlendirmeler
+    for (i = 0; i < world.powers.length; i++) {
+      var pw = world.powers[i];
+      if (pw.taken) continue;
+      var pcol = POWERS[pw.type].col, py2 = pw.y + Math.sin(time * 3 + pw.ph) * 4;
+      ctx.drawImage(glowSprite(pcol), pw.x - 30, py2 - 30, 60, 60);
+      ctx.fillStyle = "rgba(14,8,44,.9)"; ctx.beginPath(); ctx.arc(pw.x, py2, 13, 0, TAU); ctx.fill();
+      ctx.strokeStyle = pcol; ctx.lineWidth = 2.5; ctx.stroke();
+      drawPowerIcon(pw.type, pw.x, py2, pcol);
+    }
+    // iz: toplamalı karışım -> ışıldar; geniş soluk + ince parlak iki geçiş
+    var tr = P.trail, n = tr.length / 2;
+    ctx.lineCap = "round";
+    ctx.globalCompositeOperation = "lighter";
+    for (var pass = 0; pass < 2; pass++) {
+      for (i = 1; i < n; i++) {
+        var k2 = i / n;
+        ctx.strokeStyle = skinColor(n - i);
+        ctx.globalAlpha = pass ? k2 * 0.9 : k2 * 0.22;
+        ctx.lineWidth = pass ? 1 + k2 * 5 : 4 + k2 * 14;
+        ctx.beginPath(); ctx.moveTo(tr[i * 2 - 2], tr[i * 2 - 1]); ctx.lineTo(tr[i * 2], tr[i * 2 + 1]); ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    // oyuncu
+    if (P.st !== "dead") {
+      var hg2 = 60 + Math.sin(time * 8) * 6;
+      ctx.drawImage(glowSprite(skin.col), P.x - hg2 / 2, P.y - hg2 / 2, hg2, hg2);
+      if (P.st === "fly" && rnd() < 0.7) {   // uçarken kıvılcım
+        particles.push({ x: P.x, y: P.y, vx: -P.vx * 0.12 + (rnd() - 0.5) * 60, vy: -P.vy * 0.12 + (rnd() - 0.5) * 60, life: 0.35 + rnd() * 0.25, col: skinColor(rndInt(40)), r: 1 + rnd() * 1.6 });
+      }
+      ctx.fillStyle = "#f4ffff"; ctx.beginPath(); ctx.arc(P.x, P.y, 6.5, 0, TAU); ctx.fill();
+      if (skin.spark && rnd() < 0.5) burst(P.x, P.y, rnd() < 0.5 ? "#ffffff" : "#9fb4ff", 1, 60);
+      if (run.shield) {   // kalkan balonu
+        ctx.strokeStyle = "rgba(94,242,255," + (0.55 + 0.25 * Math.sin(time * 5)) + ")"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(P.x, P.y, 17, 0, TAU); ctx.stroke();
+        ctx.fillStyle = "rgba(94,242,255,.12)"; ctx.fill();
+      }
+      if (P.grace > 0 && phase === "play") {
+        ctx.strokeStyle = rgb([255, 255, 255], Math.min(1, P.grace * 1.5)); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(P.x, P.y, 13, 0, TAU); ctx.stroke();
+      }
+    }
+    // parçacıklar (toplamalı)
+    ctx.globalCompositeOperation = "lighter";
+    for (i = 0; i < particles.length; i++) {
+      var pt = particles[i];
+      ctx.globalAlpha = Math.min(1, pt.life / 0.5);
+      ctx.fillStyle = pt.col; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.r, 0, TAU); ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+    // yüzen yazılar
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (i = 0; i < floats.length; i++) {
+      var f = floats[i];
+      ctx.globalAlpha = Math.min(1, f.life * 2);
+      ctx.font = "900 " + f.size + "px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillText(f.txt, f.x + 1.5, f.y + 2);
+      ctx.fillStyle = f.col; ctx.fillText(f.txt, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Kontrol noktası: dönen altın işaret halkası + bayrak (ulaşılmadıysa yazı)
+  function drawCheckpoint(q) {
+    var rr = q.r * 1.75;
+    ctx.save();
+    ctx.translate(q.x, q.y); ctx.rotate(time * 0.8);
+    ctx.setLineDash([4, 10]); ctx.strokeStyle = "rgba(255,211,77,.85)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    var fx = q.x + q.r * 0.35, fy = q.y - q.r - 6;
+    ctx.strokeStyle = "#fff6d0"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx, fy - 30); ctx.stroke();
+    var wv = Math.sin(time * 6) * 3;
+    ctx.fillStyle = q.visited ? "#4dffa6" : "#ffd34d";
+    ctx.beginPath(); ctx.moveTo(fx, fy - 30); ctx.quadraticCurveTo(fx + 11, fy - 26 + wv, fx + 22, fy - 24); ctx.lineTo(fx, fy - 17); ctx.closePath(); ctx.fill();
+    if (!q.visited) {
+      ctx.font = "900 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffd34d"; ctx.fillText(t("cp.short"), q.x, q.y + q.R + 16);
+    }
+  }
+
+  function drawPowerIcon(type, x, y, col) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+    if (type === "shield") {
+      ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(6, -4.5); ctx.lineTo(6, 0.5);
+      ctx.quadraticCurveTo(5.5, 5.5, 0, 8); ctx.quadraticCurveTo(-5.5, 5.5, -6, 0.5); ctx.lineTo(-6, -4.5); ctx.closePath(); ctx.fill();
+    } else if (type === "magnet") {
+      ctx.beginPath(); ctx.moveTo(-5, -6); ctx.lineTo(-5, 0); ctx.arc(0, 0, 5, Math.PI, 0, true); ctx.lineTo(5, -6); ctx.stroke();
+    } else {
+      ctx.font = "900 11px system-ui, -apple-system, Segoe UI, Roboto, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("2x", 0, 0.5);
+    }
+    ctx.restore();
+  }
+
+  function render(dt) {
+    var k = SCALE * DPR;
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    drawBackground(dt);
+    var sx = 0, sy = 0;
+    if (shake > 0.2 && !reduceMotion) { sx = (rnd() - 0.5) * shake; sy = (rnd() - 0.5) * shake; }
+    // açılışta dünya gizli, açılış kapanınca yavaşça belirir
+    var wa = intro.on ? 0 : clamp(intro.after / 0.8, 0, 1);
+    if (wa <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = wa;
+    ctx.translate(sx, sy - camY);
+    drawWorld();
+    ctx.restore();
+    // kenar karartması (derinlik) + kombo parlaması
+    var vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.hypot(W, H) * 0.62);
+    vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(4,0,20,.55)");
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    if (flash.a > 0.01) {
+      ctx.fillStyle = "rgba(" + flash.c + "," + flash.a + ")"; ctx.fillRect(0, 0, W, H);
+      flash.a *= Math.exp(-dt * 6);
+    }
+  }
+
+  function layout() {
+    var cw = window.innerWidth, ch = window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+    cv.width = Math.round(cw * DPR); cv.height = Math.round(ch * DPR);
+    SCALE = Math.min(cw / 400, ch / 680);
+    W = cw / SCALE; H = ch / SCALE;
+  }
+
+  /* 11) EKRANLAR --------------------------------------------------------- */
+  var SCREENS = ["home", "shop", "missions", "rank", "settings", "pause", "over"];
+  var screenNow = null;
+  function showScreen(name) {
+    for (var i = 0; i < SCREENS.length; i++) $(SCREENS[i]).classList.toggle("on", SCREENS[i] === name);
+    screenNow = name;
+    $("hud").hidden = !(name === null || name === "pause");
+    Ads.banner(name === "home" || name === "shop" || name === "missions" || name === "rank" || name === "settings" || name === "over");
+    if (name === "home") renderHome();
+    if (name === "shop") renderShop();
+    if (name === "missions") renderMissions();
+    if (name === "rank") renderRank();
+    if (name === "settings") renderSettings();
+    var first = name && name !== "home" && $(name).querySelector("button");
+    if (first) try { first.focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  var _hud = { score: -1, combo: -1 };
+  function updateHud(force) {
+    var s = $("hudScore"), c = $("hudCombo");
+    if (force || run.score !== _hud.score) {
+      s.textContent = run.score;
+      if (!force) { s.classList.remove("bump"); void s.offsetWidth; s.classList.add("bump"); }
+      _hud.score = run.score;
+    }
+    if (force || run.combo !== _hud.combo) {
+      c.textContent = run.combo > 1 ? "x" + run.combo : "";
+      c.style.color = ["#ffd34d", "#ffd34d", "#5ef2ff", "#b07bff", "#ff5dc8"][run.combo - 1];
+      if (run.combo > 1 && !force) { c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }
+      _hud.combo = run.combo;
+    }
+  }
+  // Etkin güçlendirmeler: yalnız görünen değer değişince yeniden çizilir
+  var _pwKey = "";
+  function updatePowersHud(force) {
+    var key = (run.shield ? "s" : "") + "|" + Math.ceil(run.magnetT) + "|" + Math.ceil(run.x2T);
+    if (!force && key === _pwKey) return;
+    _pwKey = key;
+    var h = "";
+    if (run.shield) h += '<span class="pw-chip" style="--c:#5ef2ff"><svg class="ic"><use href="#i-shield"/></svg></span>';
+    if (run.magnetT > 0) h += '<span class="pw-chip" style="--c:#ff5dc8"><svg class="ic"><use href="#i-magnet"/></svg>' + Math.ceil(run.magnetT) + "</span>";
+    if (run.x2T > 0) h += '<span class="pw-chip" style="--c:#ffd34d">2x ' + Math.ceil(run.x2T) + "</span>";
+    $("hudPowers").innerHTML = h;
+  }
+
+  function updateBadges() {
+    var n = Missions.ready(), bm = $("badgeMissions");
+    bm.hidden = !n; bm.textContent = n;
+    $("badgeDaily").hidden = !Daily.claimable();
+  }
+  function renderHome() {
+    $("homeBest").textContent = best;
+    addCoins(0);
+    updateBadges();
+    var max = Store.get("cp.max", 0), s = startSector();
+    $("sectorPick").hidden = max < 1;     // en az bir kontrol noktası açılınca görünür
+    $("spName").textContent = t("sector.label", { n: s + 1 }) + " · " + sectorName(s);
+    $("spPrev").disabled = s <= 0;
+    $("spNext").disabled = s >= max;
+  }
+  function pickSector(d) {
+    var s = clamp(startSector() + d, 0, Store.get("cp.max", 0));
+    Store.set("startSector", s);
+    freshWorld();
+    renderHome();
+  }
+
+  function renderShop() {
+    var g = $("shopGrid"); g.innerHTML = "";
+    SKINS.forEach(function (s) {
+      var has = owned.indexOf(s.id) >= 0, eq = skin === s;
+      var b = document.createElement("button");
+      b.className = "skin" + (eq ? " equipped" : "");
+      var dot = s.rainbow ? "conic-gradient(#ff5d8f,#ffd34d,#4dffa6,#5ef2ff,#b388ff,#ff5d8f)"
+              : s.spark ? "radial-gradient(circle,#fff 0 20%,#9fb4ff 45%,#3a2a8f 75%)"
+              : "radial-gradient(circle at 35% 35%,#fff 0 12%," + s.col + " 45%," + hexA(s.col, 0.25) + " 75%)";
+      var status = eq ? '<span class="price dim">' + t("shop.equipped") + "</span>"
+                 : has ? '<span class="price dim">' + t("shop.equip") + "</span>"
+                 : '<span class="price' + (wallet < s.price ? " dim" : "") + '"><svg class="ic"><use href="#i-star"/></svg>' + s.price + "</span>";
+      b.innerHTML = '<span class="dot" style="background:' + dot + ";box-shadow:0 0 22px " + hexA(s.col, 0.45) + '"></span>' +
+                    '<span class="name">' + t("skin." + s.id) + "</span>" + status;
+      b.setAttribute("aria-pressed", eq ? "true" : "false");
+      b.onclick = function () { pickSkin(s); };
+      g.appendChild(b);
+    });
+  }
+  function pickSkin(s) {
+    Sound.click();
+    if (owned.indexOf(s.id) >= 0) { skin = s; Store.set("skin", s.id); Haptic.light(); renderShop(); return; }
+    if (wallet < s.price) { showToast(t("shop.need", { n: s.price - wallet })); Haptic.error(); return; }
+    askConfirm({ title: t("shop.buyQ", { name: t("skin." + s.id) }), text: t("shop.buyText", { n: s.price }), yes: t("shop.buy") }, function () {
+      if (wallet < s.price) return;
+      addCoins(-s.price);
+      owned.push(s.id); Store.set("skins", owned);
+      skin = s; Store.set("skin", s.id);
+      Sound.fanfare(); Haptic.success();
+      showToast(t("toast.bought", { name: t("skin." + s.id) }));
+      renderShop();
+    });
+  }
+
+  function renderMissions() {
+    Missions.load();
+    var ul = $("missionList"); ul.innerHTML = "";
+    $("missionsReset").textContent = t("missions.reset", { h: 24 - new Date().getHours() });
+    Missions.list.forEach(function (m, i) {
+      var done = m.prog >= m.goal, li = document.createElement("li");
+      li.className = "mission" + (m.claimed ? " claimed" : done ? " done" : "");
+      li.innerHTML = '<div><div class="txt">' + t("m." + m.type, { n: m.goal }) + "</div>" +
+        '<div class="rw"><svg class="ic"><use href="#i-star"/></svg>' + m.rw + ' · <span class="muted">' + m.prog + " / " + m.goal + "</span></div></div>" +
+        (m.claimed ? '<span class="muted"><svg class="ic" style="vertical-align:-5px"><use href="#i-check"/></svg> ' + t("missions.claimed") + "</span>"
+                   : '<button class="btn sm' + (done ? " gold" : " ghost") + '"' + (done ? "" : " disabled") + ">" + t("missions.claim") + "</button>") +
+        '<div class="bar-p" role="progressbar" aria-valuemin="0" aria-valuemax="' + m.goal + '" aria-valuenow="' + m.prog + '"><i style="width:' +
+        Math.round(m.prog / m.goal * 100) + '%"></i></div>';
+      var b = li.querySelector("button");
+      if (b) b.onclick = function () { Missions.claim(i); renderMissions(); };
+      ul.appendChild(li);
+    });
+  }
+
+  var rankTab = "world";
+  function renderRank() {
+    $("tabWorld").setAttribute("aria-selected", rankTab === "world");
+    $("tabLocal").setAttribute("aria-selected", rankTab === "local");
+    $("paneWorld").hidden = rankTab !== "world";
+    $("paneLocal").hidden = rankTab !== "local";
+    if (rankTab === "world") renderWorld(); else renderLocal();
+  }
+
+  var _worldReq = 0;
+  function worldState(key, retry) {
+    $("worldState").hidden = !key;
+    $("worldMsg").textContent = key ? t(key) : "";
+    $("btnWorldRetry").hidden = !retry;
+  }
+  function renderWorld() {
+    $("worldList").innerHTML = "";
+    $("rankMe").hidden = true;
+    if (!Online.on()) { $("nameCard").hidden = true; worldState("rank.soon"); return; }
+    if (!Online.name()) showNameCard(""); else $("nameCard").hidden = true;
+    worldState("rank.loading");
+    var req = ++_worldReq;
+    Online.load().then(function (res) {
+      if (req !== _worldReq || screenNow !== "rank") return;
+      var top = res[0] || [], me = res[1] && res[1][0], ol = $("worldList"), seen = false;
+      top.forEach(function (e) { var isMe = !!me && e.name === me.name; seen = seen || isMe; ol.appendChild(worldRow(e, isMe)); });
+      if (me && !seen && me.score > 0) {
+        var gap = document.createElement("li"); gap.className = "rank-gap"; gap.textContent = "…"; gap.setAttribute("aria-hidden", "true");
+        ol.appendChild(gap); ol.appendChild(worldRow(me, true));
+      }
+      worldState(top.length ? "" : "rank.worldEmpty");
+      if (me) {
+        $("rankMe").hidden = false;
+        $("rankMeTxt").textContent = me.score > 0 ? t("rank.me", { name: me.name, n: me.rank }) : t("rank.meNone", { name: me.name });
+      }
+    }, function () { if (req === _worldReq) worldState("rank.offline", true); });
+  }
+  // Sunucudan gelen ad güvenilmez: yalnız textContent ile yazılır
+  function worldRow(e, isMe) {
+    var li = document.createElement("li"), pos = document.createElement("span"), who = document.createElement("span"),
+        b = document.createElement("b"), sm = document.createElement("small"), sc = document.createElement("span");
+    li.className = "rank-row" + (isMe ? " me" : "");
+    pos.className = "pos"; pos.textContent = e.rank;
+    who.className = "who"; b.textContent = e.name; sm.textContent = sectorName(e.sector);
+    sc.className = "sc"; sc.textContent = e.score;
+    who.appendChild(b); who.appendChild(sm);
+    li.appendChild(pos); li.appendChild(who); li.appendChild(sc);
+    return li;
+  }
+  function showNameCard(v) { $("nameCard").hidden = false; $("nameInput").value = v; nameMsg("rank.nameHint", false); }
+  function nameMsg(k, bad) { var m = $("nameMsg"); m.textContent = t(k); m.classList.toggle("bad", !!bad); }
+
+  function renderLocal() {
+    var L = Ranks.list(), ol = $("rankList");
+    ol.innerHTML = "";
+    $("rankEmpty").hidden = L.length > 0;
+    L.forEach(function (e, i) {
+      var li = document.createElement("li");
+      li.className = "rank-row" + (e.id === Ranks.last ? " me" : "");
+      li.innerHTML = '<span class="pos">' + (i + 1) + '</span><span class="who"><b>' + sectorName(e.sec) + "</b><small>" +
+        t("rank.meta", { d: new Date(e.id).toLocaleDateString(LANG), c: e.c }) + '</small></span><span class="sc">' + e.s + "</span>";
+      ol.appendChild(li);
+    });
+  }
+
+  function renderSettings() {
+    $("swSfx").setAttribute("aria-checked", Sound.sfx);
+    $("swMusic").setAttribute("aria-checked", Sound.music);
+    $("swVibe").setAttribute("aria-checked", Haptic.on);
+    $("swNotify").setAttribute("aria-checked", Notify.on);
+    var bs = document.querySelectorAll("[data-lang]");
+    for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-pressed", bs[i].getAttribute("data-lang") === LANG);
+    $("ver").textContent = VERSION;
+  }
+
+  function openDaily() {
+    var can = Daily.claimable(), cur = Daily.nextDay(), box = $("dailyDays");
+    box.innerHTML = "";
+    for (var d = 1; d <= 7; d++) {
+      var el = document.createElement("div");
+      var isDone = can ? d < cur : d <= cur;
+      el.className = "day" + (d === 7 ? " d7" : "") + (isDone ? " done" : "") + (can && d === cur ? " today" : "");
+      el.innerHTML = "<span>" + t("daily.day", { n: d }) + "</span>" +
+        (isDone ? '<svg class="ic"><use href="#i-check"/></svg>' : '<svg class="ic gold"><use href="#i-star"/></svg>') +
+        "<b>" + Daily.REWARDS[d - 1] + "</b>";
+      box.appendChild(el);
+    }
+    $("dailyText").textContent = t(can ? "daily.text" : "daily.done");
+    $("btnDailyClaim").hidden = !can;
+    $("btnDailyDouble").hidden = !can;
+    $("daily").hidden = false;
+    (can ? $("btnDailyDouble") : $("btnDailyClose")).focus();
+  }
+  function closeDaily() { $("daily").hidden = true; renderHome(); }
+
+  function showGameOver() {
+    if (phase !== "dead") return;
+    var isBest = run.score > best;
+    if (isBest) { best = run.score; Store.set("best", best); Store.set("bestSector", run.sector); Sound.fanfare(); }
+    Online.sync();
+    if (!run.counted) {
+      run.counted = true;
+      Missions.add("runs", 1);
+      Store.set("runs", Store.get("runs", 0) + 1);
+      Ads.runEnded();
+    }
+    $("overReason").textContent = t("reason." + run.reason);
+    countUp($("overScore"), run.score);
+    if (isBest && run.score > 0) confetti($("over"));
+    $("overBest").textContent = best;
+    var pos = run.score > 0 ? Ranks.add({ id: run.rid, s: run.score, sec: run.sector, c: run.maxCombo }) : 0;
+    $("overRank").hidden = !pos;
+    if (pos) $("overRankN").textContent = t("over.rank", { n: pos });
+    $("overCoins").textContent = "+" + run.coins * (run.doubled ? 2 : 1);
+    $("overNewBest").hidden = !(isBest && run.score > 0);
+    var canCont = !run.continued && run.score >= ADS_CFG.CONTINUE_MIN_SCORE;
+    $("btnContinue").hidden = !canCont;
+    // kontrol noktası: oyun başına ilki bedava, sonrakiler reklamla
+    var canCp = !!run.cp;
+    $("btnCheckpoint").hidden = !canCp;
+    if (canCp) {
+      $("cpLabel").textContent = t("over.checkpoint", { n: sectorOf(run.cp.n) + 1 });
+      $("cpIcon").setAttribute("href", run.cpUsed ? "#i-ad" : "#i-flag");
+    }
+    $("btnDouble").hidden = run.doubled || run.coins < 1;
+    $("btnRetry").classList.toggle("ghost", canCont || canCp);   // birincil eylem tek: devam varsa o öne çıkar
+    showScreen("over");
+    if (!Store.get("notify.asked", false)) { Store.set("notify.asked", true); Notify.plan(); }  // bildirim izni ilk oyun sonunda
+  }
+
+  // Puanı 0'dan hedefe sayarak yazar (yavaşlayarak biter)
+  function countUp(el, to) {
+    if (reduceMotion || to < 2) { el.textContent = to; return; }
+    var t0 = performance.now(), dur = Math.min(900, 300 + to * 25);
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  // Rekor kutlaması: renkli konfeti (DOM, 2 sn sonra temizlenir)
+  var CONFETTI = ["#5ef2ff", "#b07bff", "#ff5dc8", "#ffd34d", "#4dffa6", "#ff8a4c"];
+  function confetti(host) {
+    if (reduceMotion) return;
+    for (var i = 0; i < 46; i++) {
+      var d = document.createElement("i");
+      d.className = "confetti";
+      d.style.left = (rnd() * 100) + "%";
+      d.style.background = CONFETTI[i % CONFETTI.length];
+      d.style.animationDelay = (rnd() * 0.5) + "s";
+      d.style.animationDuration = (1.4 + rnd() * 1) + "s";
+      d.style.setProperty("--dx", ((rnd() - 0.5) * 160) + "px");
+      d.style.setProperty("--rot", (360 + rnd() * 720) + "deg");
+      host.appendChild(d);
+      setTimeout(function (el) { return function () { el.remove(); }; }(d), 3000);
+    }
+  }
+
+  function continueRun() {
+    run.continued = true;
+    rescue();
+    phase = "idle";
+    startPlay();
+  }
+
+  // Oyun sonundan çıkış. Geçiş reklamı gösterilirse oyun reklam kapanınca başlar.
+  function leaveOver(toMenu) {
+    freshWorld();
+    phase = "idle";
+    showScreen(toMenu ? "home" : null);
+    if (toMenu) { Ads.maybeInterstitial(noop); return; }
+    if (!Ads.maybeInterstitial(startPlay)) startPlay();
+  }
+
+  function pauseGame() {
+    if (phase !== "play") return;
+    phase = "paused"; Sound.stopMusic();
+    showScreen("pause");
+  }
+  function resumeGame() {
+    if (phase !== "paused") return;
+    phase = "play"; Sound.startMusic();
+    showScreen(null);
+  }
+
+  /* 12) GİRDİ ------------------------------------------------------------ */
+  cv.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    if (intro.on) return;
+    if (phase === "idle" && screenNow === null) startPlay();   // reklam olayı gelmezse yedek: dokununca başla
+    else launch();
+  });
+  window.addEventListener("keydown", function (e) {
+    if (intro.on) { if (e.key === " " || e.key === "Enter" || e.key === "Escape") endIntro(); return; }
+    if (e.key === " " && screenNow === null) { e.preventDefault(); if (phase === "idle") startPlay(); else launch(); }
+    if (e.key === "Escape") handleBack();
+  });
+  function bind(id, fn) { $(id).addEventListener("click", function (e) { Sound.ensure(); Sound.click(); fn(e); }); }
+
+  bind("btnPlay", startPlay);
+  bind("btnPause", pauseGame);
+  bind("btnResume", resumeGame);
+  bind("btnRestart", function () { freshWorld(); phase = "idle"; startPlay(); });
+  bind("btnPauseMenu", function () { freshWorld(); phase = "idle"; showScreen("home"); Sound.startMusic(); });
+  bind("spPrev", function () { pickSector(-1); });
+  bind("spNext", function () { pickSector(1); });
+  bind("btnCheckpoint", function () { if (run.cpUsed) Ads.rewarded(restartFromCheckpoint); else restartFromCheckpoint(); });
+  bind("navShop", function () { showScreen("shop"); });
+  bind("navMissions", function () { showScreen("missions"); });
+  bind("navRank", function () { showScreen("rank"); });
+  var rtabs = document.querySelectorAll("[data-rtab]");
+  for (var rt = 0; rt < rtabs.length; rt++) rtabs[rt].addEventListener("click", function () {
+    Sound.click(); rankTab = this.getAttribute("data-rtab"); renderRank();
+  });
+  bind("btnRename", function () { showNameCard(Online.name()); $("nameInput").focus(); });
+  bind("btnWorldRetry", renderWorld);
+  $("nameCard").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = $("nameInput").value.replace(/\s+/g, " ").trim(), btn = $("btnName");
+    if (!NAME_RE.test(v)) { nameMsg("rank.nameBad", true); return; }
+    btn.disabled = true; nameMsg("rank.saving", false);
+    Online.submit(v).then(function (r) {
+      btn.disabled = false;
+      var err = r && r.err;
+      if (r && r.ok) { $("nameInput").blur(); Haptic.success(); renderWorld(); }
+      else nameMsg(err === "taken" ? "rank.nameTaken" : err === "name" ? "rank.nameBad" : err === "rate" ? "rank.rate" : "rank.error", true);
+    }, function () { btn.disabled = false; nameMsg("rank.offline", true); });
+  });
+  bind("navSettings", function () { showScreen("settings"); });
+  bind("navDaily", openDaily);
+  var backs = document.querySelectorAll("[data-back]");
+  for (var b0 = 0; b0 < backs.length; b0++) backs[b0].addEventListener("click", function () { Sound.click(); showScreen("home"); });
+
+  bind("btnContinue", function () { Ads.rewarded(continueRun); });
+  bind("btnDouble", function () {
+    Ads.rewarded(function () {
+      if (run.doubled) return;
+      run.doubled = true; addCoins(run.coins); Missions.add("stars", run.coins);
+      showToast(t("toast.reward", { n: run.coins })); Sound.fanfare();
+      $("btnDouble").hidden = true; $("overCoins").textContent = "+" + run.coins * 2;
+    });
+  });
+  bind("btnRetry", function () { leaveOver(false); });
+  bind("btnOverMenu", function () { leaveOver(true); });
+
+  bind("btnDailyClaim", function () { Daily.claim(1); closeDaily(); });
+  bind("btnDailyDouble", function () { Ads.rewarded(function () { Daily.claim(2); closeDaily(); }); });
+  bind("btnDailyClose", closeDaily);
+
+  $("cfNo").addEventListener("click", closeConfirm);
+  $("cfYes").addEventListener("click", function () { var f = _cfYes; closeConfirm(); if (f) f(); });
+
+  function toggle(id, get, set) { bind(id, function () { set(!get()); renderSettings(); }); }
+  toggle("swSfx", function () { return Sound.sfx; }, function (v) { Sound.sfx = v; Store.set("sfx", v); });
+  toggle("swMusic", function () { return Sound.music; }, function (v) { Sound.music = v; Store.set("music", v); if (v) Sound.startMusic(); else Sound.stopMusic(); });
+  toggle("swVibe", function () { return Haptic.on; }, function (v) { Haptic.on = v; Store.set("vibe", v); if (v) Haptic.medium(); });
+  toggle("swNotify", function () { return Notify.on; }, function (v) { Notify.on = v; Store.set("notify", v); Notify.plan(); });
+  var langs = document.querySelectorAll("[data-lang]");
+  for (var l0 = 0; l0 < langs.length; l0++) langs[l0].addEventListener("click", function () {
+    LANG = this.getAttribute("data-lang"); Store.set("lang", LANG);
+    applyI18n(); renderSettings(); Notify.plan();
+  });
+  bind("btnReset", function () {
+    askConfirm({ title: t("settings.resetQ"), text: t("settings.resetText"), yes: t("common.reset") }, function () {
+      Store.wipe(); location.reload();
+    });
+  });
+
+  // Android geri tuşu / Escape: bir üst katman
+  function handleBack() {
+    if (!$("confirm").hidden) return closeConfirm();
+    if (!$("daily").hidden) return closeDaily();
+    if (screenNow === "shop" || screenNow === "missions" || screenNow === "settings") return showScreen("home");
+    if (screenNow === "pause") return resumeGame();
+    if (screenNow === "over") return leaveOver(true);
+    if (screenNow === null && phase === "play") return pauseGame();
+    if (screenNow === "home") {
+      var ap = capPlugin("App");
+      if (ap) { if (ap.minimizeApp) ap.minimizeApp(); else if (ap.exitApp) ap.exitApp(); }
+    }
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { pauseGame(); Sound.stopMusic(); }
+    else if (phase !== "paused" && !intro.on) Sound.startMusic();
+  });
+  window.addEventListener("resize", layout);
+
+  /* Açılış: ışık hızı (tuval) + logo / harf animasyonu (CSS). Dokununca atlanır. */
+  function endIntro() {
+    if (!intro.on) return;
+    intro.on = false;
+    var el = $("intro");
+    el.classList.add("out");
+    setTimeout(function () { el.hidden = true; }, 460);
+    showScreen("home");
+    Sound.ensure(); Sound.startMusic();
+    if (Daily.claimable()) setTimeout(openDaily, reduceMotion ? 0 : 500);
+  }
+  $("intro").addEventListener("pointerdown", function (e) { e.preventDefault(); endIntro(); });
+
+  /* 13) NATIVE (yalnız uygulama olarak paketlenince) ---------------------- */
+  (function initNative() {
+    if (!window.Capacitor) return;
+    try { var sp = capPlugin("SplashScreen"); if (sp && sp.hide) sp.hide(); } catch (e) {}
+    try {
+      var sb = capPlugin("StatusBar");
+      if (sb) {
+        if (sb.setStyle) sb.setStyle({ style: "DARK" });
+        if (sb.setBackgroundColor) sb.setBackgroundColor({ color: "#0a0526" });
+      }
+    } catch (e) {}
+    try {
+      var ap = capPlugin("App");
+      if (ap && ap.addListener) {
+        ap.addListener("backButton", handleBack);
+        ap.addListener("pause", function () { pauseGame(); Sound.stopMusic(); });
+        ap.addListener("resume", function () { Notify.plan(); if (phase !== "paused") Sound.startMusic(); });
+      }
+    } catch (e) {}
+    try { Ads.init(); } catch (e) {}
+    try { if (Store.get("notify.asked", false)) Notify.plan(); } catch (e) {}
+  })();
+
+  /* 14) BAŞLAT ----------------------------------------------------------- */
+  layout();
+  applyI18n();
+  Missions.load();
+  freshWorld();
+  addCoins(0);
+  setTimeout(endIntro, intro.dur * 1000);
+
+  var last = 0;
+  function frame(ts) {
+    var dt = Math.min((ts - last) / 1000 || 0, 1 / 30);
+    last = ts;
+    if (intro.on) intro.t += dt; else intro.after += dt;
+    if (phase !== "paused") update(dt);
+    render(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Test botu / hata ayıklama için oyun durumu (yalnız yorunge.html#debug)
+  if (location.hash === "#debug") window.__y = function () { return { player: player, world: world, phase: phase, run: run, FLY: FLY, Sound: Sound, MOODS: MOODS, ONLINE_CFG: ONLINE_CFG, Online: Online }; };
+
+  /* 15) ÖZ-SINAMA — yorunge.html#selftest ile açınca konsola sonuç yazar ---- */
+  if (location.hash === "#selftest") {
+    var fails = [];
+    var ok = function (c, m) { if (!c) fails.push(m); };
+    // teğet fırlatma: a=0, dir=+1 -> +y yönünde
+    phase = "play"; player.a = 0; player.dir = 1; player.ot = 0;
+    launch();
+    ok(Math.abs(player.vx) < 1e-9 && Math.abs(player.vy - FLY) < 1e-9, "fırlatma teğet değil");
+    // yakalama yönü: sağ kenardan +y'ye giden -> açı artar (+1)
+    var q = world.planets[1];
+    player.vx = 0; player.vy = FLY; capture(q, q.R, 0);
+    // anında atlandı -> "hızlı" -> kombo x2, puan 2
+    ok(player.dir === 1 && player.p === q && run.combo === 2 && run.score === 2, "yakalama yönü/kombo puanı hatalı");
+    player.vx = 0; player.vy = -FLY; player.st = "fly"; capture(q, q.R, 0);
+    ok(player.dir === -1 && run.score === 2, "ters yakalama yönü ya da ziyaret edilmiş gezegene tekrar puan");
+    // görevler: aynı gün aynı, 3 farklı tür
+    var a1 = genMissions("2026-1-1"), a2 = genMissions("2026-1-1");
+    ok(JSON.stringify(a1) === JSON.stringify(a2), "görevler deterministik değil");
+    ok(a1[0].type !== a1[1].type && a1[1].type !== a1[2].type && a1[0].type !== a1[2].type, "görev türleri tekrar ediyor");
+    // yörünge çökmesi: 2 tur güvenli, 3. tur sonunda 1
+    var tq = { ws: Math.PI };   // 1 tur = 2 sn
+    ok(Sound._moodFor(-1) === MOOD_MENU && Sound._moodFor(2) === MOODS[2] && Sound._moodFor(7).root !== MOODS[1].root && Sound._moodFor(7) === Sound._moodFor(7), "müzik ruh hali seçimi hatalı");
+    ok(MOODS.concat([MOOD_MENU]).every(function (m) { return m.arp.length === 16 && m.scale.length === 5; }), "müzik deseni 16 adım / 5 derece olmalı");
+    var keepScores = Store.get("scores", []);
+    Store.set("scores", []);
+    for (var ri = 1; ri <= 12; ri++) Ranks.add({ id: ri, s: ri * 10, sec: 0, c: 1 });
+    ok(Ranks.list().length === 10 && Ranks.list()[0].s === 120 && Ranks.add({ id: 99, s: 5, sec: 0, c: 1 }) === 0, "sıralama ilk 10 olmalı");
+    ok(Ranks.add({ id: 12, s: 50, sec: 0, c: 1 }) === 1 && Ranks.list()[0].s === 120, "aynı oyunun düşük puanı rekoru silmemeli");
+    ok(Ranks.add({ id: 3, s: 115, sec: 1, c: 2 }) === 2 && Ranks.list().filter(function (e) { return e.id === 3; }).length === 1, "aynı oyun tek satır olmalı");
+    Store.set("scores", keepScores);
+    ok(orbitWarn(tq, 3.9) === 0 && orbitWarn(tq, 5) === 0.5 && orbitWarn(tq, 7) === 1, "yörünge çökme zamanlaması hatalı");
+    // günlük seri
+    ok(nextStreak("", 0, "d2", "d1") === 1, "ilk gün 1 değil");
+    ok(nextStreak("d1", 3, "d2", "d1") === 4, "seri artmıyor");
+    ok(nextStreak("d1", 7, "d2", "d1") === 1, "7. günden sonra başa dönmüyor");
+    ok(nextStreak("d0", 5, "d2", "d1") === 1, "kaçırılan gün seriyi sıfırlamıyor");
+    ok(nextStreak("d2", 5, "d2", "d1") === 5, "bugün alınmışken seri değişti");
+    // sektör / kontrol noktası
+    ok(sectorOf(19) === 0 && sectorOf(20) === 1 && sectorOf(45) === 2, "sektör hesabı hatalı");
+    ok(sectorDef(9) === sectorDef(9) && sectorDef(9).id === "deep", "derin uzay sektörü tutarsız");
+    newWorld(40);
+    ok(world.planets[0].n === 40 && run.cp && run.cp.n === 40 && run.sector === 2 && world.planets[0].visited, "kontrol noktasından başlama hatalı");
+    ok(world.planets.some(function (p) { return p.n === 60 && p.cp; }) || world.planets[world.planets.length - 1].n < 60, "kontrol noktası işareti yok");
+    // kalkan: ölümü bir kez önler
+    phase = "play"; run.shield = true; die("moon");
+    ok(phase === "play" && !run.shield && player.st === "orbit", "kalkan ölümü önlemedi");
+    die("moon");
+    ok(phase === "dead", "kalkansız ölüm olmadı");
+    newWorld(); phase = "idle";
+    console.log(fails.length ? "SELFTEST FAIL: " + fails.join("; ") : "SELFTEST OK");
+    document.title = fails.length ? "FAIL" : "OK";
+  }
+})();
+</script>
+</body>
+</html>

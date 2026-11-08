@@ -1,0 +1,174 @@
+name: Android derleme
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "İmzalı release AAB üret (imzalama sırları gerekir)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # native:config bunları taze üretilen android projesine işler
+  ANDROID_VERSION_CODE: ${{ github.run_number }}
+  ADMOB_APP_ID_ANDROID: ${{ secrets.ADMOB_APP_ID_ANDROID }}
+
+jobs:
+  # ── Her push / PR: imzasız debug APK (sır gerekmez) ─────────────
+  debug-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: capacitor-app
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: capacitor-app/package-lock.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Android SDK lisanslarını kabul et
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+
+      - name: Bağımlılıklar
+        run: npm ci
+
+      - name: Sürüm adını belirle
+        id: meta
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Native projeyi üret (sync + cap add android + native:config)
+        env:
+          APP_VERSION: ${{ steps.meta.outputs.version }}
+        run: npm run add:android
+
+      - name: Debug APK derle
+        working-directory: capacitor-app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yorunge-debug-apk
+          path: capacitor-app/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  # ── Tag (v*) veya elle "release": imzalı AAB + GitHub Release ───
+  release-aab:
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: capacitor-app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: İmzalama sırları var mı?
+        id: gate
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ANDROID_KEYSTORE_BASE64 tanımlı değil — imzalı release derlemesi atlandı."
+          fi
+
+      - uses: actions/setup-node@v5
+        if: steps.gate.outputs.ok == 'true'
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: capacitor-app/package-lock.json
+
+      - uses: actions/setup-java@v5
+        if: steps.gate.outputs.ok == 'true'
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.gate.outputs.ok == 'true'
+
+      - name: Android SDK lisanslarını kabul et
+        if: steps.gate.outputs.ok == 'true'
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+
+      - name: Bağımlılıklar
+        if: steps.gate.outputs.ok == 'true'
+        run: npm ci
+
+      - name: Sürüm adını belirle
+        id: meta
+        if: steps.gate.outputs.ok == 'true'
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Native projeyi üret
+        if: steps.gate.outputs.ok == 'true'
+        env:
+          APP_VERSION: ${{ steps.meta.outputs.version }}
+        run: npm run add:android
+
+      - name: Keystore çöz
+        if: steps.gate.outputs.ok == 'true'
+        run: printf '%s' "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      - name: İmzalı AAB derle
+        if: steps.gate.outputs.ok == 'true'
+        working-directory: capacitor-app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
+            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.ok == 'true'
+        with:
+          name: yorunge-release-aab
+          path: capacitor-app/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: GitHub Release'e ekle
+        if: steps.gate.outputs.ok == 'true' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # bu adım capacitor-app/ içinde çalışır (defaults.run.working-directory)
+        run: |
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes "$AAB" \
+            || gh release upload "$GITHUB_REF_NAME" "$AAB" --clobber
