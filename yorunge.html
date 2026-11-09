@@ -87,7 +87,7 @@
   .screen.center { align-items: center; justify-content: center; }
   /* liste ekranları: arkadaki dönen dünya kartların okunmasını bozmasın (blur yok: tuval her kare çiziliyor) */
   #shop, #missions, #rank, #settings { background: rgba(12, 6, 40, .86); }
-  #home { background: radial-gradient(ellipse 80% 45% at 50% 34%, rgba(18, 8, 56, .9) 0, rgba(18, 8, 56, .7) 55%, rgba(18, 8, 56, .35) 100%),
+  #home { background: radial-gradient(ellipse 90% 52% at 50% 36%, rgba(18, 8, 56, .94) 0, rgba(18, 8, 56, .78) 55%, rgba(18, 8, 56, .4) 100%),
                       linear-gradient(180deg, rgba(8, 4, 30, .3), rgba(8, 4, 30, .1) 60%, rgba(8, 4, 30, .85)); }
   #home .orbit { width: min(52vw, 210px); animation: floatY 5s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255, 120, 90, .45)) drop-shadow(0 0 50px rgba(94, 242, 255, .25)); }
 
@@ -150,6 +150,14 @@
   .skin .price { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--gold); }
   .skin .price.dim { color: var(--muted); }
   .skin .price .ic { width: 14px; height: 14px; }
+  /* alınabilir: altın kenar; para yetmiyor: soluk + birikim çubuğu */
+  .skin.buyable { border-color: rgba(255, 211, 77, .6); box-shadow: 0 0 18px rgba(255, 211, 77, .16); }
+  .skin.locked .dot { filter: grayscale(.6) brightness(.7); }
+  .skin .need { width: 70%; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+  .skin .need i { display: block; height: 100%; border-radius: 2px; background: var(--gold); }
+  .to-best { margin: 0 0 var(--s3); color: var(--muted); font-size: var(--fs-sm); font-weight: 700; }
+  .big-score.pop { animation: scorePop 480ms var(--ease) both; }
+  @keyframes scorePop { 40% { transform: scale(1.18); } 100% { transform: none; } }
 
   /* Görevler */
   .list { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: var(--s3); max-width: 480px; }
@@ -498,6 +506,7 @@
     <p class="muted" id="overReason" style="margin:0"></p>
     <div class="big-score" id="overScore">0</div>
     <div class="new-best" id="overNewBest" data-i18n="over.newBest" hidden></div>
+    <p class="to-best" id="overToBest" hidden></p>
     <div class="stats">
       <span><span data-i18n="over.best"></span> <b id="overBest">0</b></span>
       <span id="overRank" hidden><svg class="ic" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-trophy"/></svg> <b id="overRankN"></b></span>
@@ -646,7 +655,7 @@
       "settings.tutorial": "Nasıl oynanır",
       "hud.pause": "Duraklat",
       "pause.title": "Duraklatıldı", "pause.resume": "Devam", "pause.restart": "Yeniden başla", "pause.menu": "Ana menü",
-      "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!",
+      "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!", "over.toBest": "Rekoru kırmana {n} puan kaldı",
       "over.continue": "Devam et", "over.double": "Yıldızları 2 katına çıkar", "over.retry": "Tekrar", "over.menu": "Menü",
       "reason.void": "Boşluğa savruldun", "reason.moon": "Bir aya çarptın", "reason.hole": "Kara delik seni yuttu", "reason.decay": "Çok bekledin, yörüngen çöktü",
       "sector.label": "SEKTÖR {n}", "sector.s0": "Başlangıç Kuşağı", "sector.s1": "Ay Tarlası", "sector.s2": "Akıntı Bulutsusu",
@@ -694,7 +703,7 @@
       "settings.tutorial": "How to play",
       "hud.pause": "Pause",
       "pause.title": "Paused", "pause.resume": "Resume", "pause.restart": "Restart", "pause.menu": "Main menu",
-      "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!",
+      "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!", "over.toBest": "{n} more to beat your best",
       "over.continue": "Continue", "over.double": "Double your stars", "over.retry": "Retry", "over.menu": "Menu",
       "reason.void": "You drifted into the void", "reason.moon": "You hit a moon", "reason.hole": "A black hole swallowed you", "reason.decay": "You waited too long, your orbit decayed",
       "sector.label": "SECTOR {n}", "sector.s0": "Starter Belt", "sector.s1": "Moon Fields", "sector.s2": "Drift Nebula",
@@ -2358,9 +2367,12 @@
       var dot = s.rainbow ? "conic-gradient(#ff5d8f,#ffd34d,#4dffa6,#5ef2ff,#b388ff,#ff5d8f)"
               : s.spark ? "radial-gradient(circle,#fff 0 20%,#9fb4ff 45%,#3a2a8f 75%)"
               : "radial-gradient(circle at 35% 35%,#fff 0 12%," + s.col + " 45%," + hexA(s.col, 0.25) + " 75%)";
+      var short = !has && wallet < s.price;
+      if (!has) b.className += short ? " locked" : " buyable";
       var status = eq ? '<span class="price dim">' + t("shop.equipped") + "</span>"
                  : has ? '<span class="price dim">' + t("shop.equip") + "</span>"
-                 : '<span class="price' + (wallet < s.price ? " dim" : "") + '"><svg class="ic"><use href="#i-star"/></svg>' + s.price + "</span>";
+                 : '<span class="price' + (short ? " dim" : "") + '"><svg class="ic"><use href="#i-star"/></svg>' + s.price + "</span>" +
+                   (short ? '<span class="need" aria-hidden="true"><i style="width:' + Math.round(wallet / s.price * 100) + '%"></i></span>' : "");
       b.innerHTML = '<span class="dot" style="background:' + dot + ";box-shadow:0 0 22px " + hexA(s.col, 0.45) + '"></span>' +
                     '<span class="name">' + t("skin." + s.id) + "</span>" + status;
       b.setAttribute("aria-pressed", eq ? "true" : "false");
@@ -2517,6 +2529,11 @@
     if (pos) $("overRankN").textContent = t("over.rank", { n: pos });
     $("overCoins").textContent = "+" + run.coins * (run.doubled ? 2 : 1);
     $("overNewBest").hidden = !(isBest && run.score > 0);
+    $("overToBest").hidden = isBest || run.score < 1;
+    if (!isBest && run.score > 0) $("overToBest").textContent = t("over.toBest", { n: best - run.score + 1 });
+    var sc = $("overScore");
+    sc.classList.remove("pop");
+    if (isBest && run.score > 0 && !reduceMotion) setTimeout(function () { sc.classList.add("pop"); }, Math.min(900, 300 + run.score * 25));   // sayım bitince
     var canCont = !run.continued && run.score >= ADS_CFG.CONTINUE_MIN_SCORE;
     $("btnContinue").hidden = !canCont;
     // kontrol noktası: oyun başına ilki bedava, sonrakiler reklamla
