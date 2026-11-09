@@ -243,6 +243,7 @@
     font-weight: 800; font-size: var(--fs-lg); text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
   #tut p { margin: var(--s1) var(--s4); }
   #tut .muted { font-size: var(--fs-md); font-weight: 600; }
+  #tut:not(.go) .tap-ring { visibility: hidden; }
   .tap-ring { width: 56px; height: 56px; margin: 0 auto var(--s3); border-radius: 50%; border: 3px solid var(--accent); animation: tap 1.2s var(--ease) infinite; }
 
   /* ---------- kotiliy künyesi (logo Enerji ile aynı) ---------- */
@@ -350,7 +351,7 @@
   <button class="icon-sq" id="btnPause" data-i18n-aria="hud.pause"><svg class="ic"><use href="#i-pause"/></svg></button>
 </div>
 <div id="sectorBanner" hidden aria-live="polite"><small id="sbTop"></small><b id="sbName"></b></div>
-<div id="tut" hidden><div class="tap-ring"></div><p data-i18n="tut.1"></p><p class="muted" data-i18n="tut.2"></p></div>
+<div id="tut" hidden><div class="tap-ring"></div><p id="tutA"></p><p class="muted" id="tutB"></p></div>
 
 <!-- Ana menü -->
 <section class="screen" id="home">
@@ -451,6 +452,7 @@
     <div class="row-item"><span data-i18n="settings.notify"></span><button class="switch" role="switch" id="swNotify" data-i18n-aria="settings.notify"></button></div>
     <div class="row-item"><span data-i18n="settings.lang"></span>
       <div class="seg"><button data-lang="tr">Türkçe</button><button data-lang="en">English</button></div></div>
+    <button class="btn ghost block sm" id="btnTutorial" data-i18n="settings.tutorial"></button>
     <button class="danger-link" id="btnReset" data-i18n="settings.reset"></button>
     <div class="credit" style="margin-top: var(--s6)">
       <span class="kotiliy-mark" role="img" aria-label="kotiliy"></span>
@@ -620,7 +622,11 @@
       "intro.presents": "KOTILIY", "intro.tag": "Gezegenden gezegene sıçra", "intro.skip": "DOKUN",
       "home.play": "OYNA", "home.hint": "Dokun, fırla, yörüngeye gir",
       "nav.missions": "Görevler", "nav.shop": "Mağaza", "nav.daily": "Ödül", "nav.settings": "Ayarlar",
-      "tut.1": "Dokun: kuyruklu yıldız yörüngeden fırlar", "tut.2": "Sonraki gezegenin halkasına gir",
+      "tut.0a": "Kuyruklu yıldız gezegenin etrafında döner", "tut.0b": "Çizgi yeşile dönünce ekrana dokun",
+      "tut.1a": "Harika! Şimdi hızlı ol", "tut.1b": "Altın yay bitmeden atlarsan kombo kazanırsın",
+      "tut.2a": "Bir gezegende fazla oyalanma", "tut.2b": "Halka kırmızıya dönerse yörünge çöker",
+      "tut.tap": "DOKUN!", "tut.done": "Hazırsın! İyi uçuşlar", "tut.again": "Öğretici bir sonraki oyunda başlar",
+      "settings.tutorial": "Nasıl oynanır",
       "hud.pause": "Duraklat",
       "pause.title": "Duraklatıldı", "pause.resume": "Devam", "pause.restart": "Yeniden başla", "pause.menu": "Ana menü",
       "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!",
@@ -664,7 +670,11 @@
       "intro.presents": "KOTILIY", "intro.tag": "Leap from planet to planet", "intro.skip": "TAP",
       "home.play": "PLAY", "home.hint": "Tap, launch, catch the next orbit",
       "nav.missions": "Missions", "nav.shop": "Shop", "nav.daily": "Reward", "nav.settings": "Settings",
-      "tut.1": "Tap: your comet launches off its orbit", "tut.2": "Fly into the next planet's ring",
+      "tut.0a": "Your comet circles the planet", "tut.0b": "Tap when the line turns green",
+      "tut.1a": "Great! Now be quick", "tut.1b": "Jump before the gold arc runs out for a combo",
+      "tut.2a": "Don't linger on one planet", "tut.2b": "If the ring turns red, the orbit collapses",
+      "tut.tap": "TAP!", "tut.done": "You're ready! Have a good flight", "tut.again": "The tutorial starts next game",
+      "settings.tutorial": "How to play",
       "hud.pause": "Pause",
       "pause.title": "Paused", "pause.resume": "Resume", "pause.restart": "Restart", "pause.menu": "Main menu",
       "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!",
@@ -1446,7 +1456,25 @@
   var phase = "idle";      // idle (menüde, yörüngede bekler) | play | dead | paused
   Sound.getState = function () { return { play: phase === "play", sector: run ? run.sector : 0, combo: run ? run.combo : 1 }; };
   var particles = [], floats = [];
-  var tutDone = Store.get("tut", false);
+  var tutStep = Store.get("tut", false) ? 3 : 0, tutHit = false;
+  // Öğretici adımının yazısını #tut'a koyar; 3 = bitti, gizli
+  function setTut() {
+    var el = $("tut");
+    el.hidden = tutStep >= 3 || phase !== "play";
+    if (el.hidden) return;
+    $("tutA").textContent = t("tut." + tutStep + "a");
+    $("tutB").textContent = t("tut." + tutStep + "b");
+  }
+  // Uçuş düz çizgidir: fırlatma yönündeki ışın q'nun halkasının içinden geçiyor mu
+  function aimHits(P, q) {
+    var dx = -Math.sin(P.a) * P.dir, dy = Math.cos(P.a) * P.dir;
+    var rx = q.x - P.x, ry = q.y - P.y;
+    return rx * dx + ry * dy > 0 && Math.abs(rx * dy - ry * dx) < q.R - 6;   // 6: halkayı sıyırmasın, rahat girsin
+  }
+  function nextPlanet(p) {
+    for (var i = 0; i < world.planets.length; i++) if (world.planets[i].n === p.n + 1) return world.planets[i];
+    return null;
+  }
 
   /* Sektörler: her SECTOR_LEN gezegen bir sektör, ilk gezegeni kontrol noktası. Her sektörün
      kendi arka plan teması (BANDS sırası) ve tehlike / özel gezegen / güçlendirme ağırlıkları var. */
@@ -1595,7 +1623,7 @@
     phase = "play";
     player.ot = 0; player.warned = false;
     showScreen(null);
-    $("tut").hidden = tutDone;
+    setTut();
     if (!run.banner) { run.banner = true; showSectorBanner(run.sector, false); }
   }
 
@@ -1620,6 +1648,7 @@
     P.vx = -Math.sin(P.a) * P.dir * FLY;
     P.vy = Math.cos(P.a) * P.dir * FLY;
     P.from = P.p; P.p = null; P.st = "fly"; P.ft = 0;
+    if (tutHit) { tutHit = false; $("tut").classList.remove("go"); }
     Sound.jump(); Haptic.light();
     burst(P.x, P.y, skinColor(0), 6, 80);
   }
@@ -1649,7 +1678,11 @@
     burst(P.x, P.y, skinColor(0), 14, 160);
     burst(P.x, P.y, q.pal[0], 10, 120);
     if (run.combo >= 3 && !reduceMotion) { flash.a = 0.08 + run.combo * 0.02; flash.c = run.combo >= 5 ? "255,93,200" : "255,211,77"; }
-    if (!tutDone) { tutDone = true; Store.set("tut", true); $("tut").hidden = true; }
+    if (tutStep < 3) {
+      tutStep++;
+      if (tutStep === 3) { Store.set("tut", true); showToast(t("tut.done")); }
+      setTut();
+    }
     Missions.add("planets", 1);
     Missions.add("score", run.score);
     Missions.add("combo", run.combo);
@@ -1681,7 +1714,7 @@
       return;
     }
     phase = "dead"; P.st = "dead"; run.reason = reason;
-    $("tut").hidden = true;
+    $("tut").hidden = true; tutHit = false;
     Sound.die(); Haptic.error();
     burst(P.x, P.y, skinColor(0), 40, 260); burst(P.x, P.y, "#ffffff", 18, 180);
     shake = 14;
@@ -1695,7 +1728,7 @@
       P.a += P.dir * q.ws * dt; P.ot += dt;
       P.x = q.x + Math.cos(P.a) * q.R; P.y = q.y + Math.sin(P.a) * q.R;
       // yörünge çökmesi: 2 tur güvenli, 3. turda uyarı, sonunda ölüm (sonsuz beklemeyi önler)
-      if (phase === "play" && tutDone) {   // öğretici bitmeden çökme yok
+      if (phase === "play" && tutStep >= 2) {   // öğreticinin ilk iki adımında çökme yok
         var w = orbitWarn(q, P.ot);
         if (w > 0 && !P.warned) { P.warned = true; Haptic.light(); Sound.warn(); }
         if (w >= 1) return die("decay");
@@ -1991,7 +2024,7 @@
       }
       ctx.setLineDash([6, 8]); ctx.lineDashOffset = -time * 14; ctx.lineWidth = act ? 2 : 1.6;
       ctx.strokeStyle = act ? hexA(q.pal[0], 0.9) : hexA(q.pal[1], q.visited ? 0.2 : 0.55);
-      var warn = act && phase === "play" && tutDone ? orbitWarn(q, P.ot) : 0;
+      var warn = act && phase === "play" && tutStep >= 2 ? orbitWarn(q, P.ot) : 0;
       if (warn > 0) { ctx.strokeStyle = "rgba(255,70,110," + (0.55 + 0.45 * Math.sin(time * (10 + warn * 14))) + ")"; ctx.lineWidth = 2 + warn * 3; }
       ctx.beginPath(); ctx.arc(q.x, q.y, q.R, 0, TAU); ctx.stroke();
       if (q.pulse > 0) {
@@ -2060,6 +2093,7 @@
     }
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
+    if (phase === "play" && tutStep < 2 && P.st === "orbit") drawTutorial(P);
     // oyuncu
     if (P.st !== "dead") {
       var hg2 = 60 + Math.sin(time * 8) * 6;
@@ -2097,6 +2131,39 @@
       ctx.fillStyle = f.col; ctx.fillText(f.txt, f.x, f.y);
     }
     ctx.globalAlpha = 1;
+  }
+
+  // Öğretici işaretleri: fırlatma çizgisi (hedefe değince yeşil + hedef halka parlar), 2. adımda kombo yayı
+  function drawTutorial(P) {
+    var q = nextPlanet(P.p), el = $("tut");
+    tutHit = !!q && aimHits(P, q);
+    el.classList.toggle("go", tutHit && tutStep === 0);
+    var dx = -Math.sin(P.a) * P.dir, dy = Math.cos(P.a) * P.dir, len = 230;
+    if (tutHit) {
+      var rx = q.x - P.x, ry = q.y - P.y, along = rx * dx + ry * dy, perp = rx * dy - ry * dx;
+      len = along - Math.sqrt(Math.max(0, q.R * q.R - perp * perp));
+      ctx.strokeStyle = "rgba(77,255,166," + (0.55 + 0.35 * Math.sin(time * 10)) + ")"; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(q.x, q.y, q.R, 0, TAU); ctx.stroke();
+    }
+    var col = tutHit ? "#4dffa6" : "rgba(255,255,255,.4)", ex = P.x + dx * len, ey = P.y + dy * len;
+    ctx.setLineDash([8, 9]); ctx.lineDashOffset = -time * 40; ctx.strokeStyle = col; ctx.lineWidth = tutHit ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(P.x + dx * 14, P.y + dy * 14); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.beginPath();   // ok ucu
+    ctx.moveTo(ex + dx * 10, ey + dy * 10); ctx.lineTo(ex - dy * 7, ey + dx * 7); ctx.lineTo(ex + dy * 7, ey - dx * 7); ctx.closePath(); ctx.fill();
+    if (tutStep === 1) {   // yarım tur dolmadan atlamak "hızlı" sayılır (launch: P.ot < PI / ws)
+      var rem = Math.PI - P.ot * P.p.ws;
+      if (rem > 0) {
+        ctx.strokeStyle = "rgba(255,211,77,.9)"; ctx.lineWidth = 6; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.arc(P.p.x, P.p.y, P.p.R + 9, P.a, P.a + P.dir * rem, P.dir < 0); ctx.stroke();
+      }
+    }
+    if (tutHit && tutStep === 0) {
+      ctx.font = "900 20px system-ui, -apple-system, Segoe UI, Roboto, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      var ty = P.y - 30 - Math.abs(Math.sin(time * 6)) * 6;
+      ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillText(t("tut.tap"), P.x + 1.5, ty + 2);
+      ctx.fillStyle = "#4dffa6"; ctx.fillText(t("tut.tap"), P.x, ty);
+    }
   }
 
   // Kontrol noktası: dönen altın işaret halkası + bayrak (ulaşılmadıysa yazı)
@@ -2550,6 +2617,10 @@
     LANG = this.getAttribute("data-lang"); Store.set("lang", LANG);
     applyI18n(); renderSettings(); Notify.plan();
   });
+  bind("btnTutorial", function () {
+    tutStep = 0; Store.set("tut", false);
+    showToast(t("tut.again"));
+  });
   bind("btnReset", function () {
     askConfirm({ title: t("settings.resetQ"), text: t("settings.resetText"), yes: t("common.reset") }, function () {
       Store.wipe(); location.reload();
@@ -2625,7 +2696,7 @@
     var dt = Math.min((ts - last) / 1000 || 0, 1 / 30);
     last = ts;
     if (intro.on) intro.t += dt; else intro.after += dt;
-    if (phase !== "paused") update(dt);
+    if (phase !== "paused") update(phase === "play" && tutStep === 0 && tutHit ? dt * 0.4 : dt);
     render(dt);
     requestAnimationFrame(frame);
   }
@@ -2649,6 +2720,9 @@
     ok(player.dir === 1 && player.p === q && run.combo === 2 && run.score === 2, "yakalama yönü/kombo puanı hatalı");
     player.vx = 0; player.vy = -FLY; player.st = "fly"; capture(q, q.R, 0);
     ok(player.dir === -1 && run.score === 2, "ters yakalama yönü ya da ziyaret edilmiş gezegene tekrar puan");
+    // öğretici nişanı: a=0, dir=+1 -> +y yönüne fırlar
+    var aimP = { x: 0, y: 0, a: 0, dir: 1 };
+    ok(aimHits(aimP, { x: 0, y: 150, R: 40 }) && !aimHits(aimP, { x: 120, y: 150, R: 40 }) && !aimHits(aimP, { x: 0, y: -150, R: 40 }), "öğretici nişanı hatalı");
     // görevler: aynı gün aynı, 3 farklı tür
     var a1 = genMissions("2026-1-1"), a2 = genMissions("2026-1-1");
     ok(JSON.stringify(a1) === JSON.stringify(a2), "görevler deterministik değil");

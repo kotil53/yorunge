@@ -45,6 +45,10 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
   Ulaşınca bant çıkar, `run.cp` puanı kaydeder ve `cp.max` kalıcı olarak açılır. Arka plan teması sektöre göre değişir.
   Oyun sonunda "Kontrol noktasından" (`restartFromCheckpoint`) düğmesi çıkar: oyun başına ilki bedava, sonrakiler ödüllü
   reklamla. Ana menüdeki sektör seçici (`startSector`, `freshWorld`) açılmış sektörden başlatır.
+- **Öğretici** (`tutStep`: 0 nişan, 1 kombo, 2 çökme, 3 bitti; yalnız bitince `tut` kaydedilir): 0'da fırlatma yönünde
+  kesikli çizgi (`drawTutorial`), çizgi sonraki gezegenin halkasına değince (`aimHits`, uçuş düz çizgi) yeşil olur, hedef
+  halka parlar, "DOKUN!" çıkar ve zaman 0.4x yavaşlar. 1'de yarım tur penceresi altın yay olarak çizilir. Çökme yalnız
+  `tutStep >= 2` iken açıktır. Ayarlar'daki "Nasıl oynanır" (`btnTutorial`) öğreticiyi sıfırlar.
 - **Özel gezegenler** (`p.kind`): altın (+5 yıldız), buz (yavaş döner), pulsar (hızlı döner, +1 puan). Olasılıkları sektöre göre değişir.
 - **Güçlendirmeler** (`world.powers`, uçarken toplanır): kalkan (bir ölümü önler, `die` içinde `rescue`), mıknatıs
   (10 sn yıldız çeker) ve 2x puan (12 sn).
