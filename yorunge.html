@@ -85,6 +85,8 @@
     transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), visibility 0s linear var(--dur); }
   .screen.on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
   .screen.center { align-items: center; justify-content: center; }
+  /* liste ekranları: arkadaki dönen dünya kartların okunmasını bozmasın (blur yok: tuval her kare çiziliyor) */
+  #shop, #missions, #rank, #settings { background: rgba(12, 6, 40, .86); }
   #home { background: radial-gradient(ellipse 80% 45% at 50% 34%, rgba(18, 8, 56, .9) 0, rgba(18, 8, 56, .7) 55%, rgba(18, 8, 56, .35) 100%),
                       linear-gradient(180deg, rgba(8, 4, 30, .3), rgba(8, 4, 30, .1) 60%, rgba(8, 4, 30, .85)); }
   #home .orbit { width: min(52vw, 210px); animation: floatY 5s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255, 120, 90, .45)) drop-shadow(0 0 50px rgba(94, 242, 255, .25)); }
@@ -200,10 +202,11 @@
   .switch { position: relative; width: 56px; height: 34px; border-radius: 17px; border: 0; background: rgba(255, 255, 255, .2); transition: background var(--dur); }
   .switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff;
     transition: transform var(--dur) var(--ease); }
+  .switch::before { content: ""; position: absolute; inset: -6px -4px; }   /* dokunma alanı ≥ 44 px */
   .switch[aria-checked="true"] { background: var(--accent); }
   .switch[aria-checked="true"]::after { transform: translateX(22px); }
   .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(0, 0, 0, .3); }
-  .seg button { min-height: 40px; padding: 0 var(--s4); border: 0; border-radius: 999px; background: none; font-weight: 800; color: var(--muted); }
+  .seg button { min-height: 44px; padding: 0 var(--s4); border: 0; border-radius: 999px; background: none; font-weight: 800; color: var(--muted); }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .danger-link { margin-top: var(--s4); background: none; border: 1px solid rgba(255, 112, 150, .4); color: var(--danger);
     min-height: 52px; border-radius: var(--r-md); font-weight: 800; }
@@ -253,7 +256,7 @@
   .credit { display: flex; flex-direction: column; align-items: center; gap: 7px; }
   .credit span:not(.kotiliy-mark) { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .4px; color: var(--muted); }
   .about-links { display: flex; justify-content: center; gap: var(--s4); margin-top: var(--s3); font-size: var(--fs-xs); }
-  .about-links a { color: var(--muted); text-decoration: underline; padding: var(--s2); }
+  .about-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); text-decoration: underline; padding: 0 var(--s2); }
   #intro .credit { position: absolute; bottom: calc(var(--sb) + var(--s7) + 34px); animation: fadeUp 400ms 2.4s var(--ease) both; }
 
   /* ---------- Açılış (intro) ---------- */
