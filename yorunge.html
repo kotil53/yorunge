@@ -1253,7 +1253,10 @@
   var best = Store.get("best", 0);
 
   /* Dünya sıralaması: Supabase RPC (kurulum ve güvenlik modeli: server/supabase.sql). Adres boşsa "yakında" der. */
-  var ONLINE_CFG = { URL: "", KEY: "" };   // Supabase proje URL'si ve anon (public) anahtar
+  var ONLINE_CFG = {   // Supabase "yorunge" projesi (Frankfurt); anon anahtar herkese açık olacak şekilde tasarlandı
+    URL: "https://iooqwrezjlxlksjwxklt.supabase.co",
+    KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlvb3F3cmV6amx4bGtzand4a2x0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODgwNTIsImV4cCI6MjEwOTc2NDA1Mn0.tUeRNmViPUOtvkDJud9rcMkEgzug7xoTMXohzkPGMO8"
+  };
   var NAME_RE = /^[A-Za-z0-9ÇĞİÖŞÜçğıöşü_. -]{3,16}$/;   // sunucudaki yorunge_name_ok ile aynı (küfür listesi yalnız sunucuda)
   function randHex(n) {
     var a = new Uint8Array(n), s = "", i;

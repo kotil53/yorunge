@@ -88,6 +88,7 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
    `https://kotil53.github.io/yorunge/privacy-policy.html`. Ayarlar ekranındaki bağlantı bu adrese gider, bu yüzden
    GitHub deposunun adı `kotil53/yorunge` olmalı. Reklam/izleme beyanları (AdMob + ATT) mağaza formlarına girilir. Dünya
    sıralaması takma ad + puan + rastgele cihaz kimliği topluyor; veri güvenliği formunda da belirtilmeli.
-5. Dünya sıralaması: supabase.com'da proje aç, SQL Editor'de `server/supabase.sql`'i çalıştır, Project Settings → API'deki
-   URL ve **anon public** anahtarı `ONLINE_CFG`'ye yaz (service_role anahtarı asla oyuna girmez).
+5. Dünya sıralaması **kurulu**: Supabase projesi `yorunge` (ref `iooqwrezjlxlksjwxklt`, Frankfurt, org "kotil53's Org").
+   SQL değişirse `server/supabase.sql`'i SQL Editor'de yeniden çalıştır (tekrar çalıştırmak güvenli). `ONLINE_CFG`'de
+   yalnız **anon** anahtar durur; service_role anahtarı asla oyuna girmez. Veritabanı şifresi depoda değil, Osman'da.
 6. Yayın öncesinde SkillSpector taraması yapılır (bkz. kullanıcı CLAUDE.md).
