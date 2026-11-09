@@ -63,7 +63,7 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           elif [[ -n "$VERSION_INPUT" ]]; then
-            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ${{ }} ile değil
+            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ifade yerleştirmeyle değil
             # ortam değişkeniyle girer (komut enjeksiyonu olmasın) ve biçimi doğrulanır.
             [[ "$VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || { echo "::error::Geçersiz sürüm: $VERSION_INPUT"; exit 1; }
             echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
@@ -163,7 +163,7 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           elif [[ -n "$VERSION_INPUT" ]]; then
-            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ${{ }} ile değil
+            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ifade yerleştirmeyle değil
             # ortam değişkeniyle girer (komut enjeksiyonu olmasın) ve biçimi doğrulanır.
             [[ "$VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || { echo "::error::Geçersiz sürüm: $VERSION_INPUT"; exit 1; }
             echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
