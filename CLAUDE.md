@@ -49,6 +49,10 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
   kesikli çizgi (`drawTutorial`), çizgi sonraki gezegenin halkasına değince (`aimHits`, uçuş düz çizgi) yeşil olur, hedef
   halka parlar, "DOKUN!" çıkar ve zaman 0.4x yavaşlar. 1'de yarım tur penceresi altın yay olarak çizilir. Çökme yalnız
   `tutStep >= 2` iken açıktır. Ayarlar'daki "Nasıl oynanır" (`btnTutorial`) öğreticiyi sıfırlar.
+- **Efektler**: `wave()` dünya koordinatında genişleyen şok halkası (fırlatma, konma; komboyla büyür, kontrol noktası,
+  kalkan, ölüm). `slowmo(k, sn)` zaman ölçeği: kombo ≥ 3'te 80 ms hit-stop, kontrol noktası ve ölümde yavaş çekim; `frame`
+  içinde öğretici yavaşlatmasıyla en küçüğü alınır. Uçarken kuyruklu yıldız hız yönünde uzar. Hepsi `reduceMotion`'da kapalı.
+  Intro: ışık hızı sonunda flaş (`.flash`), logo arkasından şok dalgası (`.wave`), kuyruklu yıldız `cometIn` ile yörüngeye girer.
 - **Özel gezegenler** (`p.kind`): altın (+5 yıldız), buz (yavaş döner), pulsar (hızlı döner, +1 puan). Olasılıkları sektöre göre değişir.
 - **Güçlendirmeler** (`world.powers`, uçarken toplanır): kalkan (bir ölümü önler, `die` içinde `rescue`), mıknatıs
   (10 sn yıldız çeker) ve 2x puan (12 sn).

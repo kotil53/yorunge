@@ -263,7 +263,15 @@
   #intro .presents { position: absolute; top: 46%; font-size: var(--fs-lg); font-weight: 900; letter-spacing: .5em; color: var(--text);
     text-shadow: 0 0 24px rgba(94, 242, 255, .6);
     animation: presents 1.5s var(--ease) both; }
-  #intro .logo { display: flex; flex-direction: column; align-items: center; animation: logoIn 800ms 1.25s var(--ease) both; }
+  #intro .logo { position: relative; display: flex; flex-direction: column; align-items: center; animation: logoIn 900ms 1.25s var(--ease) both; }
+  /* ışık hızından çıkış: flaş + logonun arkasından şok dalgası + kuyruklu yıldız yörüngeye girer */
+  #intro .flash { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(233, 254, 255, .95), rgba(94, 242, 255, .35) 30%, rgba(94, 242, 255, 0) 65%);
+    animation: warpFlash 750ms 1.2s ease-out both; }
+  #intro .wave { position: absolute; left: 50%; top: calc(min(46vw, 190px) / 2); width: min(46vw, 190px); aspect-ratio: 1;
+    border: 2px solid rgba(94, 242, 255, .85); border-radius: 50%; pointer-events: none; opacity: 0;
+    animation: introWave 1s 1.35s cubic-bezier(.2, .7, .3, 1) both; }
+  #intro .orbit .comet { animation: cometIn 1.1s cubic-bezier(.2, .7, .5, .892) 1.45s both, spin 3.4s linear 2.55s infinite; }
   /* inline-block harfler üst öğenin background-clip:text'ini almaz -> degrade her harfte */
   #intro .brand { animation: none; }
   #intro .brand span { display: inline-block; background: var(--grad-brand); background-size: 700% 100%; background-position: calc(var(--i) * 16.66%) 0;
@@ -281,7 +289,11 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @keyframes tap { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
   @keyframes presents { 0% { opacity: 0; transform: scale(.94); letter-spacing: .3em; } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: scale(1.04); letter-spacing: .6em; } }
-  @keyframes logoIn { from { opacity: 0; transform: scale(.7); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes logoIn { 0% { opacity: 0; transform: scale(.45); filter: blur(12px); } 60% { opacity: 1; transform: scale(1.07); filter: none; } 100% { opacity: 1; transform: none; filter: none; } }
+  @keyframes warpFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes introWave { 0% { opacity: 1; transform: translate(-50%, -50%) scale(.25); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2.8); } }
+  /* -540°'den 0°'a yavaşlayarak; bitiş hızı sürekli dönüşle (spin 3.4 sn) aynı -> ek yeri görünmez */
+  @keyframes cometIn { from { transform: rotate(-540deg); } to { transform: rotate(0deg); } }
   @keyframes letterIn { from { opacity: 0; transform: translateY(32px) scale(.8); } to { opacity: 1; transform: none; } }
   @keyframes blink { 50% { opacity: .35; } }
   /* Sektör / kontrol noktası bandı */
@@ -535,13 +547,15 @@
     <span class="kotiliy-mark" role="img" aria-label="kotiliy"></span>
     <span data-i18n="common.developedBy"></span>
   </div>
+  <div class="flash"></div>
   <div class="logo">
+    <div class="wave"></div>
     <svg class="orbit" viewBox="0 0 200 200" aria-hidden="true">
       <defs><radialGradient id="lp2" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".55" stop-color="#ff7a59"/><stop offset="1" stop-color="#8a1f5c"/></radialGradient></defs>
       <circle cx="100" cy="100" r="78" fill="none" stroke="#5ef2ff" stroke-opacity=".4" stroke-width="2" stroke-dasharray="6 7"/>
       <circle cx="100" cy="100" r="44" fill="url(#lp2)"/>
       <ellipse cx="100" cy="104" rx="66" ry="13" fill="none" stroke="#ffd9a8" stroke-opacity=".7" stroke-width="4" transform="rotate(-18 100 104)"/>
-      <g class="comet"><circle cx="100" cy="22" r="13" fill="#5ef2ff" opacity=".3"/><circle cx="100" cy="22" r="7" fill="#e9feff"/></g>
+      <g class="comet"><path d="M49.9 40.2 A78 78 0 0 1 100 22" fill="none" stroke="#5ef2ff" stroke-opacity=".45" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="22" r="13" fill="#5ef2ff" opacity=".3"/><circle cx="100" cy="22" r="7" fill="#e9feff"/></g>
     </svg>
     <h1 class="brand" aria-label="Yörünge"><span style="--i:0">Y</span><span style="--i:1">Ö</span><span style="--i:2">R</span><span style="--i:3">Ü</span><span style="--i:4">N</span><span style="--i:5">G</span><span style="--i:6">E</span></h1>
     <p class="tagline" data-i18n="intro.tag"></p>
@@ -1456,6 +1470,18 @@
   var phase = "idle";      // idle (menüde, yörüngede bekler) | play | dead | paused
   Sound.getState = function () { return { play: phase === "play", sector: run ? run.sector : 0, combo: run ? run.combo : 1 }; };
   var particles = [], floats = [];
+  // Şok dalgaları (dünya koordinatında genişleyen halkalar) ve zaman ölçeği (hit-stop / yavaş çekim)
+  var waves = [], slow = { k: 1, t: 0 };
+  function slowmo(k, sec) {
+    if (reduceMotion) return;
+    if (slow.t <= 0 || k < slow.k) slow.k = k;
+    slow.t = Math.max(slow.t, sec);
+  }
+  function wave(x, y, col, max, w) {
+    if (reduceMotion) return;
+    waves.push({ x: x, y: y, col: col, max: max, w: w, life: 1 });
+    if (waves.length > 12) waves.shift();
+  }
   var tutStep = Store.get("tut", false) ? 3 : 0, tutHit = false;
   // Öğretici adımının yazısını #tut'a koyar; 3 = bitti, gizli
   function setTut() {
@@ -1566,7 +1592,7 @@
   function newWorld(startN) {
     startN = startN || 0;
     world = { planets: [], coins: [], holes: [], powers: [], n: startN };
-    particles.length = 0; floats.length = 0;
+    particles.length = 0; floats.length = 0; waves.length = 0; slow.t = 0;
     addPlanet();
     var p0 = world.planets[0];
     player = { st: "orbit", p: p0, from: null, last: p0, a: -Math.PI / 2, dir: 1, x: p0.x, y: p0.y - p0.R,
@@ -1651,6 +1677,7 @@
     if (tutHit) { tutHit = false; $("tut").classList.remove("go"); }
     Sound.jump(); Haptic.light();
     burst(P.x, P.y, skinColor(0), 6, 80);
+    wave(P.x, P.y, skinColor(0), 30, 3);
   }
 
   function capture(q, dx, dy) {
@@ -1677,7 +1704,11 @@
     Sound.land(run.combo); Haptic.medium();
     burst(P.x, P.y, skinColor(0), 14, 160);
     burst(P.x, P.y, q.pal[0], 10, 120);
-    if (run.combo >= 3 && !reduceMotion) { flash.a = 0.08 + run.combo * 0.02; flash.c = run.combo >= 5 ? "255,93,200" : "255,211,77"; }
+    wave(q.x, q.y, q.pal[0], q.R + 30 + run.combo * 14, 3 + run.combo);
+    if (run.combo >= 3 && !reduceMotion) {
+      flash.a = 0.08 + run.combo * 0.02; flash.c = run.combo >= 5 ? "255,93,200" : "255,211,77";
+      shake = Math.max(shake, 2 + run.combo); slowmo(0.3, 0.08);
+    }
     if (tutStep < 3) {
       tutStep++;
       if (tutStep === 3) { Store.set("tut", true); showToast(t("tut.done")); }
@@ -1697,7 +1728,8 @@
     showSectorBanner(s, true);
     Sound.checkpoint(); Haptic.success();
     burst(q.x, q.y, "#ffd34d", 36, 260);
-    if (!reduceMotion) { flash.a = 0.18; flash.c = "255,211,77"; }
+    wave(q.x, q.y, "#ffd34d", 230, 10); slowmo(0.4, 0.35);
+    if (!reduceMotion) { flash.a = 0.18; flash.c = "255,211,77"; shake = Math.max(shake, 7); }
   }
 
   // Kalkan, bir ölümü önler ve son gezegene geri koyar
@@ -1707,6 +1739,7 @@
     if (run.shield) {
       run.shield = false;
       burst(P.x, P.y, "#5ef2ff", 30, 220);
+      wave(P.x, P.y, "#5ef2ff", 120, 6);
       rescue();
       floatText(player.x, player.y - 30, t("shield.saved"), "#5ef2ff", 18);
       Sound.shield(); Haptic.success();
@@ -1718,6 +1751,8 @@
     Sound.die(); Haptic.error();
     burst(P.x, P.y, skinColor(0), 40, 260); burst(P.x, P.y, "#ffffff", 18, 180);
     shake = 14;
+    wave(P.x, P.y, "#ff3d6e", 170, 8); slowmo(0.3, 0.5);
+    if (!reduceMotion) { flash.a = 0.3; flash.c = "255,61,110"; }
     setTimeout(showGameOver, 950);
   }
 
@@ -1840,6 +1875,7 @@
       if (f.life <= 0) floats.splice(i, 1);
     }
     if (shake > 0) shake = Math.max(0, shake - dt * 40);
+    for (i = waves.length - 1; i >= 0; i--) { waves[i].life -= dt * 1.7; if (waves[i].life <= 0) waves.splice(i, 1); }
     lerpBg(dt);
   }
 
@@ -2101,7 +2137,10 @@
       if (P.st === "fly" && rnd() < 0.7) {   // uçarken kıvılcım
         particles.push({ x: P.x, y: P.y, vx: -P.vx * 0.12 + (rnd() - 0.5) * 60, vy: -P.vy * 0.12 + (rnd() - 0.5) * 60, life: 0.35 + rnd() * 0.25, col: skinColor(rndInt(40)), r: 1 + rnd() * 1.6 });
       }
-      ctx.fillStyle = "#f4ffff"; ctx.beginPath(); ctx.arc(P.x, P.y, 6.5, 0, TAU); ctx.fill();
+      ctx.fillStyle = "#f4ffff"; ctx.beginPath();
+      if (P.st === "fly" && !reduceMotion) ctx.ellipse(P.x, P.y, 9.5, 5, Math.atan2(P.vy, P.vx), 0, TAU);
+      else ctx.arc(P.x, P.y, 6.5, 0, TAU);
+      ctx.fill();
       if (skin.spark && rnd() < 0.5) burst(P.x, P.y, rnd() < 0.5 ? "#ffffff" : "#9fb4ff", 1, 60);
       if (run.shield) {   // kalkan balonu
         ctx.strokeStyle = "rgba(94,242,255," + (0.55 + 0.25 * Math.sin(time * 5)) + ")"; ctx.lineWidth = 2.5;
@@ -2120,6 +2159,12 @@
       ctx.globalAlpha = Math.min(1, pt.life / 0.5);
       ctx.fillStyle = pt.col; ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.r, 0, TAU); ctx.fill();
     }
+    for (i = 0; i < waves.length; i++) {
+      var wv = waves[i], wp = 1 - wv.life;
+      ctx.globalAlpha = wv.life * 0.85; ctx.strokeStyle = wv.col; ctx.lineWidth = 1 + wv.w * wv.life;
+      ctx.beginPath(); ctx.arc(wv.x, wv.y, wv.max * (1 - Math.pow(1 - wp, 3)), 0, TAU); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
     // yüzen yazılar
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -2696,7 +2741,10 @@
     var dt = Math.min((ts - last) / 1000 || 0, 1 / 30);
     last = ts;
     if (intro.on) intro.t += dt; else intro.after += dt;
-    if (phase !== "paused") update(phase === "play" && tutStep === 0 && tutHit ? dt * 0.4 : dt);
+    var k = 1;
+    if (slow.t > 0) { slow.t -= dt; k = slow.k; }
+    if (phase === "play" && tutStep === 0 && tutHit) k = Math.min(k, 0.4);
+    if (phase !== "paused") update(dt * k);
     render(dt);
     requestAnimationFrame(frame);
   }
