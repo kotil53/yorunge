@@ -37,18 +37,47 @@ create index if not exists new_player_log_idx on public.new_player_log (ip_hash,
 alter table public.new_player_log enable row level security;
 revoke all on public.new_player_log from anon, authenticated;
 
--- Takma ad kuralı: 3–16 karakter; harf (Türkçe dahil), rakam, boşluk, _ . -; baş/son boşluk yok; küfür listesi
+-- Küfür denetimi için sadeleştirme: küçük harf, sayı-harf oyunları (0→o 1→i 3→e 4→a 5→s 7→t 8→b), Türkçe harfler
+-- düz Latin'e, harf dışı her şey (boşluk _ . -) atılır, tekrarlanan harf teke iner. "S.1.k  t1iiir" -> "siktir"
+create or replace function public.yorunge_norm(p text) returns text
+language sql immutable as $$
+  select regexp_replace(
+           regexp_replace(translate(lower(p), '0134578ışğüöç', 'oieastbisguoc'), '[^a-z]', '', 'g'),
+           '(.)\1+', '\1', 'g');
+$$;
+
+-- Takma ad kuralı: 3–16 karakter; harf (Türkçe dahil), rakam, boşluk, _ . -; baş/son boşluk yok; küfür listesi.
+-- Liste iki türlü (terimler sadeleştirilmiş biçimde, yani tekrarlı harfler tek yazılır):
+--   * uzun / belirgin terimler adın HER YERİNDE aranır (birleşik ve sadeleştirilmiş hâlinde);
+--   * kısa terimler yalnız ad (ya da adın bir parçası) tam olarak o kelimeyse engellenir, yoksa masum adları
+--     keser ("amin" -> Benjamin, "got" -> Gotham, "nazi" -> Nazım, "rape" -> Grapefruit).
 create or replace function public.yorunge_name_ok(p text) returns boolean
 language sql immutable as $$
+  with n as (select public.yorunge_norm(p) as j)
   select p ~ '^[A-Za-z0-9ÇĞİÖŞÜçğıöşü_. -]{3,16}$'
      and p = btrim(p)
      and p !~ '  '
      and not exists (
-       select 1 from unnest(array[
-         'amk', 'amın', 'amina', 'orospu', 'yarrak', 'siktir', 'sikerim', 'sikik', 'göt', 'pezevenk', 'kahpe', 'ibne',
-         'fuck', 'shit', 'bitch', 'cunt', 'dick', 'nigg', 'fag', 'whore', 'admin', 'moderat', 'kotil'
+       select 1 from n, unnest(array[
+         -- Türkçe
+         'orospu', 'orosbu', 'orspu', 'siktir', 'sikerim', 'sikeyim', 'sikiyim', 'sikik', 'sikis', 'sikim',
+         'amcik', 'amcig', 'aminako', 'aminiz', 'yarak', 'yarag', 'tasak', 'pezeven', 'kahpe', 'kaltak', 'surtuk',
+         'fahise', 'yavsak', 'gavat', 'kerhane', 'ibne', 'pust', 'serefsiz', 'gotveren', 'gotlek', 'sapik', 'kancik',
+         'dangalak', 'gerizekal', 'salak', 'aptal',
+         -- İngilizce (tekrarlı harfler tek: pussy -> pusy, faggot -> fagot)
+         'fuck', 'fck', 'shit', 'bitch', 'cunt', 'whore', 'slut', 'pusy', 'fagot', 'porn', 'hitler', 'niger',
+         -- kimliğe bürünme
+         'admin', 'moderat', 'kotil'
        ]) w
-       where lower(p) like '%' || w || '%'
+       where n.j like '%' || w || '%'
+     )
+     and not exists (
+       select 1 from n
+         cross join lateral (select public.yorunge_norm(x) as t from regexp_split_to_table(p, '[ _.-]+') x
+                             union all select n.j) tok
+         cross join unnest(array['amk', 'aq', 'got', 'sik', 'pic', 'oc', 'mal', 'dick', 'cock', 'fag', 'sex', 'rape',
+                      'nazi', 'niga', 'nigas', 'ass']) w
+       where tok.t = w
      );
 $$;
 
