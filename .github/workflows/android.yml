@@ -13,6 +13,10 @@ on:
         type: boolean
         default: false
 
+# GITHUB_TOKEN yalnız okuma; release-aab işi kendi permissions'ında yazma açar
+permissions:
+  contents: read
+
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true

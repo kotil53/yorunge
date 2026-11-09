@@ -26,6 +26,13 @@ on:
         type: string
         default: ""
 
+# GITHUB_TOKEN yalnız okuma; yazma gereken iş kendi permissions'ını açar
+permissions:
+  contents: read
+
+env:
+  VERSION_INPUT: ${{ inputs.version }}
+
 concurrency:
   group: ios-${{ github.ref }}
   cancel-in-progress: true
@@ -55,9 +62,11 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          elif [[ -n "${{ inputs.version }}" ]]; then
-            # Elle girilen sürüm no (workflow_dispatch "version" girdisi).
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$VERSION_INPUT" ]]; then
+            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ${{ }} ile değil
+            # ortam değişkeniyle girer (komut enjeksiyonu olmasın) ve biçimi doğrulanır.
+            [[ "$VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || { echo "::error::Geçersiz sürüm: $VERSION_INPUT"; exit 1; }
+            echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
           else
             # Tag ve girdi yok: sürüm capacitor-app/package.json'dan (ör. 1.0.1).
             # CFBundleShortVersionString sabit kalır; build'leri ayıran tek şey
@@ -153,9 +162,11 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          elif [[ -n "${{ inputs.version }}" ]]; then
-            # Elle girilen sürüm no (workflow_dispatch "version" girdisi).
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$VERSION_INPUT" ]]; then
+            # Elle girilen sürüm no (workflow_dispatch "version" girdisi). Kabuğa ${{ }} ile değil
+            # ortam değişkeniyle girer (komut enjeksiyonu olmasın) ve biçimi doğrulanır.
+            [[ "$VERSION_INPUT" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || { echo "::error::Geçersiz sürüm: $VERSION_INPUT"; exit 1; }
+            echo "version=$VERSION_INPUT" >> "$GITHUB_OUTPUT"
           else
             # Tag ve girdi yok: sürüm capacitor-app/package.json'dan (ör. 1.0.1).
             # CFBundleShortVersionString sabit kalır; build'leri ayıran tek şey

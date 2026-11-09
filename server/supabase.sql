@@ -6,6 +6,8 @@
 --   * İstemci yalnızca üç fonksiyonu çağırır: submit_score, top_scores, my_rank.
 --   * Her cihaz rastgele bir kimlik (id) ve gizli anahtar (secret) üretir; sunucu yalnızca anahtarın
 --     SHA-256 özetini saklar. Bir satırı yalnızca anahtarın sahibi güncelleyebilir.
+--   * Yeni oyuncu kaydı IP başına saatte 5 ile sınırlı (new_player_log, IP'nin yalnız özeti, 1 saat).
+--   * Supabase Auth üye kaydı kapalı (oyun Auth kullanmıyor); açılırsa anon anahtarla e-posta gönderilebilir.
 --   * shortcut: puan istemcide hesaplandığı için hile tamamen engellenemez; makul sınır + hız sınırı var.
 --     Sorun çıkarsa sunucu tarafı oyun doğrulaması ya da elle silme (delete from players where ...) gerekir.
 
@@ -24,6 +26,16 @@ create index if not exists players_score_idx on public.players (score desc, upda
 
 alter table public.players enable row level security;
 revoke all on public.players from anon, authenticated;
+
+-- Spam / ad kapmayı sınırlar: IP başına saatte en çok 5 yeni oyuncu. IP'nin kendisi değil, SHA-256 özeti tutulur
+-- ve 1 saatten eski satırlar her yeni kayıtta silinir.
+create table if not exists public.new_player_log (
+  ip_hash text not null,
+  at      timestamptz not null default now()
+);
+create index if not exists new_player_log_idx on public.new_player_log (ip_hash, at);
+alter table public.new_player_log enable row level security;
+revoke all on public.new_player_log from anon, authenticated;
 
 -- Takma ad kuralı: 3–16 karakter; harf (Türkçe dahil), rakam, boşluk, _ . -; baş/son boşluk yok; küfür listesi
 create or replace function public.yorunge_name_ok(p text) returns boolean
@@ -48,6 +60,7 @@ declare
   h   text := encode(extensions.digest(coalesce(p_secret, ''), 'sha256'), 'hex');
   r   public.players;
   has boolean;
+  ip  text;
 begin
   if p_id is null or length(coalesce(p_secret, '')) < 32 then return json_build_object('ok', false, 'err', 'secret'); end if;
   p_name := btrim(coalesce(p_name, ''));
@@ -64,6 +77,19 @@ begin
   end if;
   if exists (select 1 from public.players where lower(name) = lower(p_name) and id <> p_id) then
     return json_build_object('ok', false, 'err', 'taken');
+  end if;
+
+  if not has then
+    -- PostgREST istek başlıkları; ilk adres istemcinin IP'si
+    ip := btrim(split_part(coalesce(current_setting('request.headers', true)::json ->> 'x-forwarded-for', ''), ',', 1));
+    if ip <> '' then
+      ip := encode(extensions.digest(ip, 'sha256'), 'hex');
+      delete from public.new_player_log where at < now() - interval '1 hour';
+      if (select count(*) from public.new_player_log where ip_hash = ip) >= 5 then
+        return json_build_object('ok', false, 'err', 'rate');
+      end if;
+      insert into public.new_player_log (ip_hash) values (ip);
+    end if;
   end if;
 
   begin
