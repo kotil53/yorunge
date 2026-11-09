@@ -91,7 +91,7 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
 2. GitHub sırları: `ADMOB_APP_ID_ANDROID`, `ADMOB_APP_ID_IOS`, Android imzalama sırları
    (`ANDROID_KEYSTORE_BASE64`, …) ve App Store sırları (`APPSTORE_*`). Adlar Enerji ile aynı;
    iş akışları [.github/workflows](.github/workflows) içinde.
-3. App Store Connect'te `com.kotilgames.yorunge` paket kimliğiyle uygulama kaydı aç, Play Console'da yeni uygulama oluştur.
+3. App Store Connect'te `com.kotiliy.yorunge` paket kimliğiyle uygulama kaydı aç, Play Console'da yeni uygulama oluştur.
 4. Gizlilik politikası [docs/privacy-policy.html](docs/privacy-policy.html) (GitHub Pages, `main` / `/docs`):
    `https://kotil53.github.io/yorunge/privacy-policy.html`. Ayarlar ekranındaki bağlantı bu adrese gider, bu yüzden
    GitHub deposunun adı `kotil53/yorunge` olmalı. Reklam/izleme beyanları (AdMob + ATT) mağaza formlarına girilir. Dünya

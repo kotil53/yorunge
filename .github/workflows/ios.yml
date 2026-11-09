@@ -137,9 +137,9 @@ jobs:
           # dosya yoluna karışırsa xcodebuild "keyPathInvalidFormat" ile kırılıyor.
           trim() { printf '%s' "$1" | tr -d '\n\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
           # KEY_ID gizli değil (AuthKey_<KEY_ID>.p8 dosya adının kendisi) — secret yerine
-          # sabit. APPSTORE_API_PRIVATE_KEY bu Key ID'ye ait .p8 olmalı (AuthKey_Z4B2M8QU2M.p8).
+          # sabit. APPSTORE_API_PRIVATE_KEY bu Key ID'ye ait .p8 olmalı (AuthKey_P7S984S5VP.p8, "ci-yorunge", Admin).
           {
-            echo "KEY_ID=Z4B2M8QU2M"
+            echo "KEY_ID=P7S984S5VP"
             echo "ISSUER_ID=$(trim "$ISSUER_ID_RAW")"
             echo "TEAM_ID=$(trim "$TEAM_ID_RAW")"
           } >> "$GITHUB_ENV"
@@ -253,7 +253,7 @@ jobs:
           }
           const apps = data.data.map((a) => a.attributes.bundleId);
           console.log('Hesaptaki uygulamalar: ' + (apps.join(', ') || '(yok)'));
-          console.log(apps.includes('com.kotilgames.yorunge') ? 'com.kotilgames.yorunge kaydi VAR.' : '::warning::com.kotilgames.yorunge App Store Connect te kayitli degil (yukleme icin gerekir).');
+          console.log(apps.includes('com.kotiliy.yorunge') ? 'com.kotiliy.yorunge kaydi VAR.' : '::warning::com.kotiliy.yorunge App Store Connect te kayitli degil (yukleme icin gerekir).');
           EOF
           node "$RUNNER_TEMP/asc_test.mjs"
 
@@ -385,7 +385,7 @@ jobs:
       - name: TestFlight'a yükle
         if: steps.gate.outputs.ok == 'true'
         # App Store Connect'te "Yörünge" uygulama kaydı zaten var (bundle id
-        # com.kotilgames.yorunge) -> altool'un aradığı .p8 klasörüne kopyalayıp yüklüyoruz.
+        # com.kotiliy.yorunge) -> altool'un aradığı .p8 klasörüne kopyalayıp yüklüyoruz.
         run: |
           IPA="$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
           echo "-- yüklenecek: $IPA --"
