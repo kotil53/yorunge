@@ -135,6 +135,16 @@
   .big-score { font-size: 80px; font-weight: 900; line-height: 1; margin: var(--s3) 0 var(--s2); font-variant-numeric: tabular-nums;
     background: var(--grad-brand); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 22px rgba(176, 123, 255, .5)); animation: shimmer 6s linear infinite; }
+  /* oyun sonu: dünya sıralamasında oyuncunun çevresi, yarı saydam */
+  .mini-rank { margin: 0 0 var(--s4); padding: var(--s2) var(--s2) var(--s1); border-radius: var(--r-md);
+    background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); animation: fadeUp 240ms var(--ease) both; }
+  .mini-title { margin: 0 0 var(--s1); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .mini-rank ol { list-style: none; margin: 0; padding: 0; text-align: left; }
+  .mini-row { display: grid; grid-template-columns: 2.8em 1fr auto; gap: var(--s2); align-items: center; padding: 3px var(--s2);
+    border-radius: 8px; font-size: var(--fs-sm); color: rgba(233, 236, 255, .62); font-variant-numeric: tabular-nums; }
+  .mini-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .mini-row .p { font-weight: 800; }
+  .mini-row.me { background: rgba(94, 242, 255, .16); color: var(--text); font-weight: 900; }
   .stats { display: flex; justify-content: center; gap: var(--s5); margin-bottom: var(--s4); color: var(--muted); font-weight: 700; }
   .stats b { color: var(--text); }
   .new-best { display: inline-block; margin-bottom: var(--s3); padding: var(--s1) var(--s3); border-radius: 999px;
@@ -524,6 +534,10 @@
       <span id="overRank" hidden><svg class="ic" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-trophy"/></svg> <b id="overRankN"></b></span>
       <span><svg class="ic gold" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-star"/></svg> <b id="overCoins">+0</b></span>
     </div>
+    <div class="mini-rank" id="overWorld" hidden>
+      <p class="mini-title" data-i18n="over.world"></p>
+      <ol id="overWorldList"></ol>
+    </div>
     <div class="stack">
       <button class="btn gold block" id="btnContinue"><svg class="ic"><use href="#i-ad"/></svg><span data-i18n="over.continue"></span></button>
       <button class="btn block" id="btnCheckpoint"><svg class="ic"><use id="cpIcon" href="#i-flag"/></svg><span id="cpLabel"></span></button>
@@ -682,7 +696,7 @@
       "settings.tutorial": "Nasıl oynanır",
       "hud.pause": "Duraklat",
       "pause.title": "Duraklatıldı", "pause.resume": "Devam", "pause.restart": "Yeniden başla", "pause.menu": "Ana menü",
-      "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!", "over.toBest": "Rekoru kırmana {n} puan kaldı",
+      "over.title": "Yörüngeden çıktın", "over.best": "En iyi", "over.newBest": "YENİ REKOR!", "over.world": "Dünya sıralaması", "over.toBest": "Rekoru kırmana {n} puan kaldı",
       "over.continue": "Devam et", "over.double": "Yıldızları 2 katına çıkar", "over.retry": "Tekrar", "over.menu": "Menü",
       "reason.void": "Boşluğa savruldun", "reason.moon": "Bir aya çarptın", "reason.hole": "Kara delik seni yuttu", "reason.decay": "Çok bekledin, yörüngen çöktü",
       "sector.label": "SEKTÖR {n}", "sector.s0": "Başlangıç Kuşağı", "sector.s1": "Ay Tarlası", "sector.s2": "Akıntı Bulutsusu",
@@ -734,7 +748,7 @@
       "settings.tutorial": "How to play",
       "hud.pause": "Pause",
       "pause.title": "Paused", "pause.resume": "Resume", "pause.restart": "Restart", "pause.menu": "Main menu",
-      "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!", "over.toBest": "{n} more to beat your best",
+      "over.title": "Lost in space", "over.best": "Best", "over.newBest": "NEW BEST!", "over.world": "World ranking", "over.toBest": "{n} more to beat your best",
       "over.continue": "Continue", "over.double": "Double your stars", "over.retry": "Retry", "over.menu": "Menu",
       "reason.void": "You drifted into the void", "reason.moon": "You hit a moon", "reason.hole": "A black hole swallowed you", "reason.decay": "You waited too long, your orbit decayed",
       "sector.label": "SECTOR {n}", "sector.s0": "Starter Belt", "sector.s1": "Moon Fields", "sector.s2": "Drift Nebula",
@@ -1376,11 +1390,15 @@
     },
     // Oyun sonu: gönderilmemiş rekor varsa sessizce gönderir; çevrimdışıysa sonraki oyunda yeniden dener
     sync: function () {
-      if (!this.on() || !this.name() || best <= Store.get("online.sent", 0)) return;
-      this.submit(this.name()).catch(function () {});
+      if (!this.on() || !this.name() || best <= Store.get("online.sent", 0)) return Promise.resolve();
+      return this.submit(this.name()).catch(function () {});
     },
+    // Oyuncunun çevresi: 3 üstü + kendisi + 2 altı (sunucu "me" bayrağıyla döner)
+    around: function () { return this._rpc("around_me", { p_id: this.id() }); },
     load: function () {
-      return Promise.all([this._rpc("top_scores", { p_limit: 50 }), this.name() ? this._rpc("my_rank", { p_id: this.id() }) : []]);
+      var named = !!this.name();
+      return Promise.all([this._rpc("top_scores", { p_limit: 50 }), named ? this._rpc("my_rank", { p_id: this.id() }) : [],
+                          named ? this.around() : []]);
     }
   };
 
@@ -2476,8 +2494,14 @@
       var top = res[0] || [], me = res[1] && res[1][0], ol = $("worldList"), seen = false;
       top.forEach(function (e) { var isMe = !!me && e.name === me.name; seen = seen || isMe; ol.appendChild(worldRow(e, isMe)); });
       if (me && !seen && me.score > 0) {
-        var gap = document.createElement("li"); gap.className = "rank-gap"; gap.textContent = "…"; gap.setAttribute("aria-hidden", "true");
-        ol.appendChild(gap); ol.appendChild(worldRow(me, true));
+        var shown = top.map(function (e) { return e.name; });
+        var near = (res[2] || []).filter(function (e) { return shown.indexOf(e.name) < 0; });
+        if (!near.length) near = [me];
+        if (!top.length || near[0].rank > top[top.length - 1].rank + 1) {   // "…" yalnız arada atlanan sıra varsa
+          var gap = document.createElement("li"); gap.className = "rank-gap"; gap.textContent = "…"; gap.setAttribute("aria-hidden", "true");
+          ol.appendChild(gap);
+        }
+        near.forEach(function (e) { ol.appendChild(worldRow(e, e.me === true || e.name === me.name)); });
       }
       worldState(top.length ? "" : "rank.worldEmpty");
       if (me) {
@@ -2580,7 +2604,8 @@
     if (phase !== "dead") return;
     var isBest = run.score > best;
     if (isBest) { best = run.score; Store.set("best", best); Store.set("bestSector", run.sector); Sound.fanfare(); }
-    Online.sync();
+    $("overWorld").hidden = true;
+    if (Online.on() && Online.name()) Online.sync().then(function () { return Online.around(); }).then(renderOverWorld, function () {});
     if (!run.counted) {
       run.counted = true;
       Missions.add("runs", 1);
@@ -2614,6 +2639,19 @@
     $("btnRetry").classList.toggle("ghost", canCont || canCp);   // birincil eylem tek: devam varsa o öne çıkar
     showScreen("over");
     if (!Store.get("notify.asked", false)) { Store.set("notify.asked", true); Notify.plan(); }  // bildirim izni ilk oyun sonunda
+  }
+
+  // Sunucudan gelen ad güvenilmez: yalnız textContent
+  function renderOverWorld(rows) {
+    if (screenNow !== "over" || !rows || !rows.length) return;
+    var ol = $("overWorldList"); ol.innerHTML = "";
+    rows.forEach(function (e) {
+      var li = document.createElement("li"), p = document.createElement("span"), b = document.createElement("b"), sc = document.createElement("span");
+      li.className = "mini-row" + (e.me ? " me" : "");
+      p.className = "p"; p.textContent = e.rank + "."; b.textContent = e.name; sc.textContent = e.score;
+      li.appendChild(p); li.appendChild(b); li.appendChild(sc); ol.appendChild(li);
+    });
+    $("overWorld").hidden = false;
   }
 
   // Puanı 0'dan hedefe sayarak yazar (yavaşlayarak biter)

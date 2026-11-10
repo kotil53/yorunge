@@ -3,7 +3,7 @@
 --
 -- Güvenlik modeli:
 --   * Tabloya istemciden doğrudan erişim yok (RLS açık, politika yok, yetkiler geri alındı).
---   * İstemci yalnızca üç fonksiyonu çağırır: submit_score, top_scores, my_rank.
+--   * İstemci yalnızca dört fonksiyonu çağırır: submit_score, top_scores, my_rank, around_me.
 --   * Her cihaz rastgele bir kimlik (id) ve gizli anahtar (secret) üretir; sunucu yalnızca anahtarın
 --     SHA-256 özetini saklar. Bir satırı yalnızca anahtarın sahibi güncelleyebilir.
 --   * Yeni oyuncu kaydı IP başına saatte 5 ile sınırlı (new_player_log, IP'nin yalnız özeti, 1 saat).
@@ -159,9 +159,27 @@ language sql stable security definer set search_path = public as $$
     from public.players p where p.id = p_id;
 $$;
 
+-- Oyuncunun çevresi: 3 üstü + kendisi + 2 altı (ör. 53. ise 50–55). Kimlik dönmez, yalnız "me" bayrağı.
+-- shortcut: her çağrıda tüm tabloyu sıralar; oyuncu sayısı on binleri geçerse önbellekli sıra tablosuna geç.
+create or replace function public.around_me(p_id uuid)
+returns table (rank bigint, name text, score int, sector int, me boolean)
+language sql stable security definer set search_path = public as $$
+  with r as (
+    select p.id, p.name, p.score, p.sector,
+           rank() over (order by p.score desc) as rk,
+           row_number() over (order by p.score desc, p.updated_at asc) as rn
+      from public.players p where p.score > 0),
+  m as (select rn from r where id = p_id)
+  select r.rk, r.name, r.score, r.sector, r.id = p_id
+    from r, m where r.rn between m.rn - 3 and m.rn + 2
+   order by r.rn;
+$$;
+
 revoke all on function public.submit_score(uuid, text, text, int, int) from public;
 revoke all on function public.top_scores(int) from public;
 revoke all on function public.my_rank(uuid) from public;
+revoke all on function public.around_me(uuid) from public;
 grant execute on function public.submit_score(uuid, text, text, int, int) to anon, authenticated;
 grant execute on function public.top_scores(int) to anon, authenticated;
 grant execute on function public.my_rank(uuid) to anon, authenticated;
+grant execute on function public.around_me(uuid) to anon, authenticated;

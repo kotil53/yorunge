@@ -73,6 +73,8 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
     anahtar sahibi günceller. Ad kuralı istemcide `NAME_RE`, sunucuda `yorunge_name_ok` (küfür listesi yalnız sunucuda).
     Oyun sonunda gönderilmemiş rekor `Online.sync()` ile gönderilir. `ONLINE_CFG.URL` boşsa sekme "yakında" der.
     Sunucudan gelen adlar yalnız `textContent` ile yazılır.
+    Çevre: `around_me` (3 üst + kendisi + 2 alt, ör. 53. ise 50–55). Oyun sonunda yarı saydam mini liste (`renderOverWorld`),
+    Sıralama'da ilk 50 dışındaysa ilk 50'nin altına eklenir ("…" yalnız atlanan sıra varsa).
   - **Takma ad penceresi** (`nameModal`, `openNameModal`): OYNA'ya ilk basışta ad yoksa bir kez sorulur (`name.asked`);
     "Şimdi değil" ya da kayıttan sonra oyun başlar. Ayarlar'daki "Takma ad · Düzenle" ve Sıralama'daki "Adı değiştir" aynı
     `saveName` doğrulamasını kullanır.
