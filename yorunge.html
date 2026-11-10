@@ -214,7 +214,8 @@
   .rank-me { max-width: 480px; margin: 0 auto var(--s3); display: flex; align-items: center; justify-content: space-between; gap: var(--s3); font-weight: 800; }
   .nm-input { width: 100%; min-height: 48px; margin-top: var(--s3); padding: 0 var(--s3); border-radius: var(--r-md);
     border: 1px solid var(--line); background: rgba(0, 0, 0, .3); color: var(--text); font: inherit; font-size: var(--fs-md); font-weight: 700; }
-  .nm-msg { min-height: 1.4em; margin: var(--s3) 0 var(--s3); font-size: var(--fs-sm); color: var(--muted); }
+  .nm-input:focus-visible { outline-offset: 1px; }
+  .nm-msg { min-height: 1.4em; margin: calc(var(--s3) + 6px) 0 var(--s3); font-size: var(--fs-sm); color: var(--muted); }
   .nm-msg.bad { color: var(--danger, #ff6b8b); }
   #nameForm .row2 .btn { white-space: nowrap; font-size: var(--fs-md); padding: 0 var(--s3); }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -716,7 +717,7 @@
       "settings.nick": "Takma ad", "settings.nickNone": "yok", "settings.nickEdit": "Düzenle",
       "rank.world": "Dünya", "rank.local": "Benim", "rank.nameLabel": "Takma adın", "rank.save": "Kaydet", "rank.saving": "Kaydediliyor…",
       "rank.nameHint": "3–16 karakter. Takma adın ve en iyi puanın herkese görünür.",
-      "rank.nameBad": "Bu ad kullanılamaz. Harf, rakam, boşluk ya da _ . - kullan.", "rank.nameTaken": "Bu ad alınmış, başka bir tane dene.",
+      "rank.nameBad": "Bu ad kullanılamaz. Harf, rakam, boşluk ya da _ . - kullan.", "rank.nameTaken": "Bu ad alınmış, başka bir tane dene.", "rank.nameBlocked": "Bu ad uygun değil, başka bir ad dene.",
       "rank.offline": "Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.", "rank.rate": "Biraz bekleyip tekrar dene.",
       "rank.error": "Bir sorun oluştu, tekrar dene.", "rank.retry": "Tekrar dene", "rank.loading": "Yükleniyor…",
       "rank.soon": "Dünya sıralaması yakında açılacak.", "rank.worldEmpty": "Henüz kimse yok. Listeye ilk giren sen ol!",
@@ -768,7 +769,7 @@
       "settings.nick": "Nickname", "settings.nickNone": "none", "settings.nickEdit": "Edit",
       "rank.world": "World", "rank.local": "Mine", "rank.nameLabel": "Your nickname", "rank.save": "Save", "rank.saving": "Saving…",
       "rank.nameHint": "3–16 characters. Your nickname and best score are public.",
-      "rank.nameBad": "That name can’t be used. Use letters, numbers, spaces or _ . -", "rank.nameTaken": "That name is taken, try another.",
+      "rank.nameBad": "That name can’t be used. Use letters, numbers, spaces or _ . -", "rank.nameTaken": "That name is taken, try another.", "rank.nameBlocked": "That name isn’t allowed, try another.",
       "rank.offline": "Couldn’t connect. Check your internet and try again.", "rank.rate": "Wait a moment and try again.",
       "rank.error": "Something went wrong, try again.", "rank.retry": "Try again", "rank.loading": "Loading…",
       "rank.soon": "The world leaderboard is coming soon.", "rank.worldEmpty": "No one here yet. Be the first on the list!",
@@ -2531,7 +2532,7 @@
       btn.disabled = false;
       var err = r && r.err;
       if (r && r.ok) { Haptic.success(); done(); }
-      else msg(err === "taken" ? "rank.nameTaken" : err === "name" ? "rank.nameBad" : err === "rate" ? "rank.rate" : "rank.error", true);
+      else msg(err === "taken" ? "rank.nameTaken" : err === "name" ? "rank.nameBlocked" : err === "rate" ? "rank.rate" : "rank.error", true);
     }, function () { btn.disabled = false; msg("rank.offline", true); });
   }
   var _nmPlay = false;   // pencere OYNA'dan açıldıysa kapanınca oyun başlar

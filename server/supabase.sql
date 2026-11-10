@@ -67,7 +67,7 @@ language sql immutable as $$
          -- İngilizce (tekrarlı harfler tek: pussy -> pusy, faggot -> fagot)
          'fuck', 'fck', 'shit', 'bitch', 'cunt', 'whore', 'slut', 'pusy', 'fagot', 'porn', 'hitler', 'niger',
          -- kimliğe bürünme
-         'admin', 'moderat', 'kotil'
+         'admin', 'moderat', 'kotiliy'   -- marka taklidi; "kotil" değil (Kotil / Kotiloğlu soyadlarını engellemesin)
        ]) w
        where n.j like '%' || w || '%'
      )
