@@ -202,6 +202,14 @@
   .name-card p { margin: 0; font-size: var(--fs-xs); color: var(--muted); }
   .name-card p.bad { color: var(--danger); }
   .rank-me { max-width: 480px; margin: 0 auto var(--s3); display: flex; align-items: center; justify-content: space-between; gap: var(--s3); font-weight: 800; }
+  .nm-input { width: 100%; min-height: 48px; margin-top: var(--s3); padding: 0 var(--s3); border-radius: var(--r-md);
+    border: 1px solid var(--line); background: rgba(0, 0, 0, .3); color: var(--text); font: inherit; font-size: var(--fs-md); font-weight: 700; }
+  .nm-msg { min-height: 1.4em; margin: var(--s3) 0 var(--s3); font-size: var(--fs-sm); color: var(--muted); }
+  .nm-msg.bad { color: var(--danger, #ff6b8b); }
+  #nameForm .row2 .btn { white-space: nowrap; font-size: var(--fs-md); padding: 0 var(--s3); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .nick-val { display: flex; align-items: center; gap: var(--s2); min-width: 0; }
+  .nick-val b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 9em; }
   .link-btn { min-height: 44px; padding: 0 var(--s2); border: 0; background: none; color: var(--accent); font: inherit; font-weight: 800; }
   .rank-gap { list-style: none; text-align: center; color: var(--muted); font-weight: 900; }
 
@@ -475,6 +483,8 @@
     <div class="row-item"><span data-i18n="settings.music"></span><button class="switch" role="switch" id="swMusic" data-i18n-aria="settings.music"></button></div>
     <div class="row-item"><span data-i18n="settings.vibe"></span><button class="switch" role="switch" id="swVibe" data-i18n-aria="settings.vibe"></button></div>
     <div class="row-item"><span data-i18n="settings.notify"></span><button class="switch" role="switch" id="swNotify" data-i18n-aria="settings.notify"></button></div>
+    <div class="row-item" id="nickRow"><span data-i18n="settings.nick"></span>
+      <span class="nick-val"><b id="nickVal"></b><button class="link-btn" id="btnNickEdit" type="button" data-i18n="settings.nickEdit"></button></span></div>
     <div class="row-item"><span data-i18n="settings.lang"></span>
       <div class="seg"><button data-lang="tr">Türkçe</button><button data-lang="en">English</button></div></div>
     <button class="btn ghost block sm" id="btnTutorial" data-i18n="settings.tutorial"></button>
@@ -538,6 +548,21 @@
       <button class="btn ghost block sm" id="btnDailyClose" data-i18n="common.close"></button>
     </div>
   </div>
+</div>
+
+<!-- Takma ad: oyuna ilk başlarken ve Ayarlar'dan -->
+<div class="modal" id="nameModal" hidden role="dialog" aria-modal="true" aria-labelledby="nmTitle">
+  <form class="card" id="nameForm">
+    <h3 id="nmTitle"></h3>
+    <p class="muted" data-i18n="name.text"></p>
+    <label class="sr-only" for="nmInput" data-i18n="rank.nameLabel"></label>
+    <input id="nmInput" class="nm-input" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+    <p id="nmMsg" class="nm-msg" role="status"></p>
+    <div class="row2">
+      <button class="btn ghost" id="nmLater" type="button"></button>
+      <button class="btn" id="nmSave" type="submit" data-i18n="rank.save"></button>
+    </div>
+  </form>
 </div>
 
 <!-- Onay -->
@@ -671,6 +696,10 @@
       "shop.buyQ": "{name} alınsın mı?", "shop.buyText": "{n} yıldız harcanacak.", "shop.buy": "Satın al",
       "skin.nova": "Nova", "skin.ember": "Kor", "skin.emerald": "Zümrüt", "skin.royal": "Kraliyet",
       "skin.rose": "Gül", "skin.gold": "Altın", "skin.rainbow": "Gökkuşağı", "skin.void": "Süpernova",
+      "name.title": "Takma adını kaydet", "name.editTitle": "Takma adını düzenle",
+      "name.text": "Dünya sıralamasında bu adla görünürsün. İstediğin zaman Ayarlar'dan değiştirebilirsin.",
+      "name.later": "Şimdi değil", "name.ph": "örn. Yıldız Avcısı", "name.saved": "Takma ad kaydedildi",
+      "settings.nick": "Takma ad", "settings.nickNone": "yok", "settings.nickEdit": "Düzenle",
       "rank.world": "Dünya", "rank.local": "Benim", "rank.nameLabel": "Takma adın", "rank.save": "Kaydet", "rank.saving": "Kaydediliyor…",
       "rank.nameHint": "3–16 karakter. Takma adın ve en iyi puanın herkese görünür.",
       "rank.nameBad": "Bu ad kullanılamaz. Harf, rakam, boşluk ya da _ . - kullan.", "rank.nameTaken": "Bu ad alınmış, başka bir tane dene.",
@@ -719,6 +748,10 @@
       "shop.buyQ": "Buy {name}?", "shop.buyText": "This costs {n} stars.", "shop.buy": "Buy",
       "skin.nova": "Nova", "skin.ember": "Ember", "skin.emerald": "Emerald", "skin.royal": "Royal",
       "skin.rose": "Rose", "skin.gold": "Gold", "skin.rainbow": "Rainbow", "skin.void": "Supernova",
+      "name.title": "Save your nickname", "name.editTitle": "Edit your nickname",
+      "name.text": "This is how you appear on the world leaderboard. You can change it anytime in Settings.",
+      "name.later": "Not now", "name.ph": "e.g. Star Hunter", "name.saved": "Nickname saved",
+      "settings.nick": "Nickname", "settings.nickNone": "none", "settings.nickEdit": "Edit",
       "rank.world": "World", "rank.local": "Mine", "rank.nameLabel": "Your nickname", "rank.save": "Save", "rank.saving": "Saving…",
       "rank.nameHint": "3–16 characters. Your nickname and best score are public.",
       "rank.nameBad": "That name can’t be used. Use letters, numbers, spaces or _ . -", "rank.nameTaken": "That name is taken, try another.",
@@ -2465,6 +2498,36 @@
     li.appendChild(pos); li.appendChild(who); li.appendChild(sc);
     return li;
   }
+  // Takma adı doğrular ve sunucuya kaydeder; Sıralama'daki form ve takma ad penceresi ortak kullanır
+  function saveName(v, btn, msg, done) {
+    v = v.replace(/\s+/g, " ").trim();
+    if (!NAME_RE.test(v)) { msg("rank.nameBad", true); return; }
+    btn.disabled = true; msg("rank.saving", false);
+    Online.submit(v).then(function (r) {
+      btn.disabled = false;
+      var err = r && r.err;
+      if (r && r.ok) { Haptic.success(); done(); }
+      else msg(err === "taken" ? "rank.nameTaken" : err === "name" ? "rank.nameBad" : err === "rate" ? "rank.rate" : "rank.error", true);
+    }, function () { btn.disabled = false; msg("rank.offline", true); });
+  }
+  var _nmPlay = false;   // pencere OYNA'dan açıldıysa kapanınca oyun başlar
+  function nmMsg(k, bad) { var m = $("nmMsg"); m.textContent = t(k); m.classList.toggle("bad", !!bad); }
+  function openNameModal(fromPlay) {
+    _nmPlay = fromPlay;
+    $("nmTitle").textContent = t(Online.name() ? "name.editTitle" : "name.title");
+    $("nmLater").textContent = t(fromPlay ? "name.later" : "common.no");
+    $("nmInput").value = Online.name();
+    $("nmInput").placeholder = t("name.ph");
+    nmMsg("rank.nameHint", false);
+    $("nameModal").hidden = false;
+    $("nmInput").focus();
+  }
+  function closeNameModal() {
+    $("nameModal").hidden = true;
+    Store.set("name.asked", true);   // OYNA'da bir kez sorulur; sonrası Ayarlar / Sıralama'dan
+    renderSettings();
+    if (_nmPlay) { _nmPlay = false; startPlay(); }
+  }
   function showNameCard(v) { $("nameCard").hidden = false; $("nameInput").value = v; nameMsg("rank.nameHint", false); }
   function nameMsg(k, bad) { var m = $("nameMsg"); m.textContent = t(k); m.classList.toggle("bad", !!bad); }
 
@@ -2489,6 +2552,8 @@
     var bs = document.querySelectorAll("[data-lang]");
     for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-pressed", bs[i].getAttribute("data-lang") === LANG);
     $("ver").textContent = VERSION;
+    $("nickRow").hidden = !Online.on();
+    $("nickVal").textContent = Online.name() || t("settings.nickNone");
   }
 
   function openDaily() {
@@ -2621,7 +2686,10 @@
   });
   function bind(id, fn) { $(id).addEventListener("click", function (e) { Sound.ensure(); Sound.click(); fn(e); }); }
 
-  bind("btnPlay", startPlay);
+  bind("btnPlay", function () {
+    if (Online.on() && !Online.name() && !Store.get("name.asked", false)) openNameModal(true);
+    else startPlay();
+  });
   bind("btnPause", pauseGame);
   bind("btnResume", resumeGame);
   bind("btnRestart", function () { freshWorld(); phase = "idle"; startPlay(); });
@@ -2640,16 +2708,14 @@
   bind("btnWorldRetry", renderWorld);
   $("nameCard").addEventListener("submit", function (e) {
     e.preventDefault();
-    var v = $("nameInput").value.replace(/\s+/g, " ").trim(), btn = $("btnName");
-    if (!NAME_RE.test(v)) { nameMsg("rank.nameBad", true); return; }
-    btn.disabled = true; nameMsg("rank.saving", false);
-    Online.submit(v).then(function (r) {
-      btn.disabled = false;
-      var err = r && r.err;
-      if (r && r.ok) { $("nameInput").blur(); Haptic.success(); renderWorld(); }
-      else nameMsg(err === "taken" ? "rank.nameTaken" : err === "name" ? "rank.nameBad" : err === "rate" ? "rank.rate" : "rank.error", true);
-    }, function () { btn.disabled = false; nameMsg("rank.offline", true); });
+    saveName($("nameInput").value, $("btnName"), nameMsg, function () { $("nameInput").blur(); renderWorld(); });
   });
+  $("nameForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    saveName($("nmInput").value, $("nmSave"), nmMsg, function () { $("nmInput").blur(); showToast(t("name.saved")); closeNameModal(); });
+  });
+  bind("nmLater", closeNameModal);
+  bind("btnNickEdit", function () { openNameModal(false); });
   bind("navSettings", function () { showScreen("settings"); });
   bind("navDaily", openDaily);
   var backs = document.querySelectorAll("[data-back]");
@@ -2697,6 +2763,7 @@
   // Android geri tuşu / Escape: bir üst katman
   function handleBack() {
     if (!$("confirm").hidden) return closeConfirm();
+    if (!$("nameModal").hidden) return closeNameModal();
     if (!$("daily").hidden) return closeDaily();
     if (screenNow === "shop" || screenNow === "missions" || screenNow === "settings") return showScreen("home");
     if (screenNow === "pause") return resumeGame();

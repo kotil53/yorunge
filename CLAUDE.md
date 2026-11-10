@@ -73,6 +73,9 @@ derlerken `JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
     anahtar sahibi günceller. Ad kuralı istemcide `NAME_RE`, sunucuda `yorunge_name_ok` (küfür listesi yalnız sunucuda).
     Oyun sonunda gönderilmemiş rekor `Online.sync()` ile gönderilir. `ONLINE_CFG.URL` boşsa sekme "yakında" der.
     Sunucudan gelen adlar yalnız `textContent` ile yazılır.
+  - **Takma ad penceresi** (`nameModal`, `openNameModal`): OYNA'ya ilk basışta ad yoksa bir kez sorulur (`name.asked`);
+    "Şimdi değil" ya da kayıttan sonra oyun başlar. Ayarlar'daki "Takma ad · Düzenle" ve Sıralama'daki "Adı değiştir" aynı
+    `saveName` doğrulamasını kullanır.
   - **Benim** (`Ranks`, `scores` anahtarı): bu cihazdaki en iyi 10 oyun. Devam ve kontrol noktası aynı oyunu
     sürdürür (`run.rid`), tek satır güncellenir.
 - **Ses** (`Sound`, dosya yok, WebAudio sentezi): müzik 16'lık adımlı bir sıralayıcı (`_tick` / `_stepAt`, 50 ms'lik
