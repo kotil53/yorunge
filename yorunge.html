@@ -1077,7 +1077,7 @@
      YAYIN: AdMob konsolunda bu uygulama için birimleri oluştur, AD_UNITS.live'a yaz,
      TEST_MODE = false yap. App ID'ler native tarafta (ADMOB_APP_ID_* sırları). */
   var ADS_CFG = {
-    TEST_MODE: true,                 // true -> Google test reklamları. Yayında false.
+    TEST_MODE: false,                // true -> Google test reklamları. Yayında false.
     INTERSTITIAL_EVERY: 3,           // kaç oyun bitiminde bir geçiş reklamı
     INTERSTITIAL_MIN_RUNS: 3,        // ilk bu kadar oyunda geçiş reklamı yok (yeni oyuncuyu kaçırmamak için)
     INTERSTITIAL_COOLDOWN_MS: 60000, // iki geçiş reklamı arası en az süre
@@ -1089,8 +1089,8 @@
       ios:     { interstitial: "ca-app-pub-3940256099942544/4411468910", rewarded: "ca-app-pub-3940256099942544/6978759866", banner: "ca-app-pub-3940256099942544/2934735716" }
     },
     live: {   // AdMob'da "Yörünge" uygulaması için oluşturulan birimler buraya
-      android: { interstitial: "", rewarded: "", banner: "" },
-      ios:     { interstitial: "", rewarded: "", banner: "" }
+      android: { interstitial: "ca-app-pub-8703431820946387/8506045432", rewarded: "ca-app-pub-8703431820946387/7238350747", banner: "ca-app-pub-8703431820946387/3706299849" },
+      ios:     { interstitial: "ca-app-pub-8703431820946387/8359860727", rewarded: "ca-app-pub-8703431820946387/5257065560", banner: "ca-app-pub-8703431820946387/6224651976" }
     }
   };
 
