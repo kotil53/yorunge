@@ -215,7 +215,10 @@
   .nm-input { width: 100%; min-height: 48px; margin-top: var(--s3); padding: 0 var(--s3); border-radius: var(--r-md);
     border: 1px solid var(--line); background: rgba(0, 0, 0, .3); color: var(--text); font: inherit; font-size: var(--fs-md); font-weight: 700; }
   .nm-input:focus-visible { outline-offset: 1px; }
-  .nm-msg { min-height: 1.4em; margin: calc(var(--s3) + 6px) 0 var(--s3); font-size: var(--fs-sm); color: var(--muted); }
+  /* kart içi p kuralları marjı ezmesin: boşluk kutunun altında, kimlikle */
+  #nameForm .nm-input { margin-bottom: var(--s3); }
+  #nameForm .nm-msg { margin: 0 0 var(--s3); }
+  .nm-msg { min-height: 1.4em; font-size: var(--fs-sm); color: var(--muted); }
   .nm-msg.bad { color: var(--danger, #ff6b8b); }
   #nameForm .row2 .btn { white-space: nowrap; font-size: var(--fs-md); padding: 0 var(--s3); }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
