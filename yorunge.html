@@ -1527,7 +1527,9 @@
   var cv = $("cv"), ctx = cv.getContext("2d");
   var W = 400, H = 700, SCALE = 1, DPR = 1;
   var FLY = 440;           // uçuş hızı (birim/sn)
-  var MAX_FLIGHT = 2.4;    // bu süreden uzun uçuş = boşluğa savruldun
+  var GRAV = 1300;         // gezegen çekimi (birim/sn²); halkayı ~40 birim ıskalayan atış hâlâ yakalanır
+  var GRAV_WELL = 90;      // çekimin halkanın dışına uzandığı mesafe
+  var MAX_FLIGHT = 2.4;   // bu süreden uzun uçuş = boşluğa savruldun
   // Gezegen paletleri: [ışık, ana renk, gölge]; canlı/doygun tonlar
   var PAL = [
     ["#ffe0b0", "#ff6a3d", "#a1124f"], ["#c8fbff", "#22b4ff", "#2a1fa8"], ["#eaffc0", "#3ee07a", "#0a6e5e"],
@@ -1856,8 +1858,26 @@
     if (P.trail.length > 48) P.trail.splice(0, 2);
   }
 
+  // Çekim: halkaya GRAV_WELL birimden yakın geçen yıldızın yönü gezegene bükülür; hız FLY'da sabit kalır.
+  // Dönüş yarıçapı FLY²/GRAV ≈ 150 > kuyu, yani gezegen etrafında sonsuz dolanma olmaz. Kalkılan gezegen çekmez.
+  function gravityPull(P, dt) {
+    var ax = 0, ay = 0;
+    for (var i = 0; i < world.planets.length; i++) {
+      var q = world.planets[i];
+      if (q === P.from) continue;
+      var dx = q.x - P.x, dy = q.y - P.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d > q.R + GRAV_WELL || d < 1) continue;
+      ax += dx * GRAV / d; ay += dy * GRAV / d;
+    }
+    if (!ax && !ay) return;
+    P.vx += ax * dt; P.vy += ay * dt;
+    var s = FLY / Math.hypot(P.vx, P.vy);
+    P.vx *= s; P.vy *= s;
+  }
+
   function flyStep(dt) {
     var P = player, i, q, dx, dy;
+    gravityPull(P, dt);
     P.ft += dt; P.x += P.vx * dt; P.y += P.vy * dt;
     for (i = 0; i < world.coins.length; i++) {
       var c = world.coins[i];
@@ -2902,6 +2922,15 @@
     // öğretici nişanı: a=0, dir=+1 -> +y yönüne fırlar
     var aimP = { x: 0, y: 0, a: 0, dir: 1 };
     ok(aimHits(aimP, { x: 0, y: 150, R: 40 }) && !aimHits(aimP, { x: 120, y: 150, R: 40 }) && !aimHits(aimP, { x: 0, y: -150, R: 40 }), "öğretici nişanı hatalı");
+    // çekim: halkayı 30 ıskalayan atış yakalanır, 120 ıskalayan yakalanmaz; hız sabit
+    var gShot = function (miss) {
+      var gq = { x: 0, y: -250, R: 60, n: 999, pal: PAL[0], visited: true };
+      world.planets = [gq]; phase = "idle";
+      Object.assign(player, { st: "fly", from: null, p: null, x: gq.R + miss, y: 0, vx: 0, vy: -FLY, ft: 0 });
+      for (var gi = 0; gi < 600 && player.st === "fly"; gi++) flyStep(1 / 240);
+      return player.p === gq && player.st === "orbit";
+    };
+    ok(gShot(30) && Math.abs(Math.hypot(player.vx, player.vy) - FLY) < 1e-6 && !gShot(120), "gezegen çekimi hatalı");
     // görevler: aynı gün aynı, 3 farklı tür
     var a1 = genMissions("2026-1-1"), a2 = genMissions("2026-1-1");
     ok(JSON.stringify(a1) === JSON.stringify(a2), "görevler deterministik değil");
