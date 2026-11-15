@@ -159,6 +159,7 @@
     box-shadow: 0 0 24px rgba(140, 100, 255, .3); }
   .skin .dot { width: 56px; height: 56px; border-radius: 50%; }
   .skin .name { font-weight: 800; }
+  .skin .perk { font-size: var(--fs-sm); color: var(--muted); text-align: center; line-height: 1.3; min-height: 2.6em; }
   .skin .price { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--gold); }
   .skin .price.dim { color: var(--muted); }
   .skin .price .ic { width: 14px; height: 14px; }
@@ -709,7 +710,10 @@
       "home.start": "BAŞLANGIÇ", "home.prevSector": "Önceki sektör", "home.nextSector": "Sonraki sektör",
       "power.shield": "Kalkan!", "power.magnet": "Mıknatıs!", "power.x2": "2x Puan!", "shield.saved": "Kalkan seni kurtardı!",
       "combo.quick": "Hızlı!", "combo.perfect": "Kusursuz!", "combo.legend": "Efsane!",
-      "shop.title": "Mağaza", "shop.note": "Yıldız topla, kuyruklu yıldızına yeni görünüm kazan.",
+      "shop.title": "Mağaza", "shop.note": "Yıldız topla, kuyruklu yıldızına yeni görünüm ve özellik kazan.",
+      "perk.none": "Özellik yok", "perk.orbit": "Yörünge 1 tur geç çöker", "perk.pull": "Yakındaki yıldızları çeker",
+      "perk.long": "Güçlendirmeler %50 uzun sürer", "perk.shield": "Oyuna kalkanla başlar", "perk.double": "Her yıldız 2 sayılır",
+      "perk.combo": "Kombo için daha çok süre", "perk.moon": "Aylar zarar vermez, parçalanır",
       "shop.equip": "Kullan", "shop.equipped": "Kullanılıyor", "shop.need": "{n} yıldız daha gerek",
       "shop.buyQ": "{name} alınsın mı?", "shop.buyText": "{n} yıldız harcanacak.", "shop.buy": "Satın al",
       "skin.nova": "Nova", "skin.ember": "Kor", "skin.emerald": "Zümrüt", "skin.royal": "Kraliyet",
@@ -761,7 +765,10 @@
       "home.start": "START AT", "home.prevSector": "Previous sector", "home.nextSector": "Next sector",
       "power.shield": "Shield!", "power.magnet": "Magnet!", "power.x2": "2x Score!", "shield.saved": "Shield saved you!",
       "combo.quick": "Quick!", "combo.perfect": "Perfect!", "combo.legend": "Legendary!",
-      "shop.title": "Shop", "shop.note": "Collect stars and unlock new looks for your comet.",
+      "shop.title": "Shop", "shop.note": "Collect stars and unlock new looks and perks for your comet.",
+      "perk.none": "No perk", "perk.orbit": "Orbit decays 1 lap later", "perk.pull": "Pulls in nearby stars",
+      "perk.long": "Power-ups last 50% longer", "perk.shield": "Start with a shield", "perk.double": "Every star counts twice",
+      "perk.combo": "More time to keep combos", "perk.moon": "Moons shatter instead of killing",
       "shop.equip": "Equip", "shop.equipped": "Equipped", "shop.need": "{n} more stars",
       "shop.buyQ": "Buy {name}?", "shop.buyText": "This costs {n} stars.", "shop.buy": "Buy",
       "skin.nova": "Nova", "skin.ember": "Ember", "skin.emerald": "Emerald", "skin.royal": "Royal",
@@ -1434,13 +1441,13 @@
 
   var SKINS = [
     { id: "nova",    col: "#5ef2ff", price: 0 },
-    { id: "ember",   col: "#ff8a4c", price: 150 },
-    { id: "emerald", col: "#4dffa6", price: 300 },
-    { id: "royal",   col: "#b388ff", price: 500 },
-    { id: "rose",    col: "#ff6fae", price: 800 },
-    { id: "gold",    col: "#ffd34d", price: 1200 },
-    { id: "rainbow", col: "#ffffff", price: 2000, rainbow: true },
-    { id: "void",    col: "#c9d4ff", price: 3500, spark: true }
+    { id: "ember",   col: "#ff8a4c", price: 150, perk: "orbit" },     // yörünge 1 tur geç çöker
+    { id: "emerald", col: "#4dffa6", price: 300, perk: "pull" },      // yakındaki yıldızları çeker
+    { id: "royal",   col: "#b388ff", price: 500, perk: "long" },      // güçlendirmeler %50 uzun
+    { id: "rose",    col: "#ff6fae", price: 800, perk: "shield" },    // oyuna kalkanla başlar
+    { id: "gold",    col: "#ffd34d", price: 1200, perk: "double" },   // her yıldız 2 sayılır
+    { id: "rainbow", col: "#ffffff", price: 2000, rainbow: true, perk: "combo" },   // kombo penceresi 3/4 tur
+    { id: "void",    col: "#c9d4ff", price: 3500, spark: true, perk: "moon" }        // aylar öldürmez, parçalanır
   ];
   var owned = Store.get("skins", ["nova"]);
   var skin = SKINS[0];
@@ -1577,12 +1584,12 @@
      kendi arka plan teması (BANDS sırası) ve tehlike / özel gezegen / güçlendirme ağırlıkları var. */
   var SECTOR_LEN = 20;
   var SECTORS = [
-    { id: "s0", moon: 0.15, drift: 0,    hole: 0,    gold: 0.15, ice: 0,    pulsar: 0,    power: 0.12 },   // Başlangıç Kuşağı
-    { id: "s1", moon: 0.55, drift: 0.1,  hole: 0,    gold: 0.08, ice: 0.05, pulsar: 0,    power: 0.15 },   // Ay Tarlası
-    { id: "s2", moon: 0.25, drift: 0.6,  hole: 0.05, gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.15 },   // Akıntı Bulutsusu
-    { id: "s3", moon: 0.3,  drift: 0.25, hole: 0.5,  gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.17 },   // Kara Delik Vadisi
-    { id: "s4", moon: 0.35, drift: 0.3,  hole: 0.2,  gold: 0.08, ice: 0.4,  pulsar: 0.05, power: 0.17 },   // Buzul Halkalar
-    { id: "s5", moon: 0.4,  drift: 0.35, hole: 0.25, gold: 0.08, ice: 0.05, pulsar: 0.4,  power: 0.18 }    // Pulsar Fırtınası
+    { id: "s0", moon: 0.08, drift: 0,    hole: 0,    gold: 0.15, ice: 0,    pulsar: 0,    power: 0.12 },   // Başlangıç Kuşağı
+    { id: "s1", moon: 0.35, drift: 0.1,  hole: 0,    gold: 0.08, ice: 0.05, pulsar: 0,    power: 0.15 },   // Ay Tarlası
+    { id: "s2", moon: 0.12, drift: 0.6,  hole: 0.05, gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.15 },   // Akıntı Bulutsusu
+    { id: "s3", moon: 0.15, drift: 0.25, hole: 0.5,  gold: 0.08, ice: 0.05, pulsar: 0.05, power: 0.17 },   // Kara Delik Vadisi
+    { id: "s4", moon: 0.18, drift: 0.3,  hole: 0.2,  gold: 0.08, ice: 0.4,  pulsar: 0.05, power: 0.17 },   // Buzul Halkalar
+    { id: "s5", moon: 0.2,  drift: 0.35, hole: 0.25, gold: 0.08, ice: 0.05, pulsar: 0.4,  power: 0.18 }    // Pulsar Fırtınası
   ];
   var _deep = {};
   function sectorOf(n) { return Math.floor(n / SECTOR_LEN); }
@@ -1591,8 +1598,9 @@
     if (s < SECTORS.length) return SECTORS[s];
     if (_deep[s]) return _deep[s];
     var r = mulberry32(hashStr("deep." + s)), keys = ["moon", "drift", "hole", "ice", "pulsar"];
-    var d = { id: "deep", moon: 0.35, drift: 0.3, hole: 0.3, gold: 0.07, ice: 0.1, pulsar: 0.1, power: 0.18 };
+    var d = { id: "deep", moon: 0.2, drift: 0.3, hole: 0.3, gold: 0.07, ice: 0.1, pulsar: 0.1, power: 0.18 };
     for (var i = 0; i < 2; i++) d[keys.splice(Math.floor(r() * keys.length), 1)[0]] = 0.6;
+    d.moon = Math.min(d.moon, 0.4);
     return (_deep[s] = d);
   }
   function sectorName(s) { return s < SECTORS.length ? t("sector." + SECTORS[s].id) : t("sector.deep") + " " + (s - SECTORS.length + 1); }
@@ -1632,8 +1640,8 @@
     if (cp) p.ws = 1.9;                         // kontrol noktası: yavaş ve güvenli
     if (p.kind === "ice") p.ws *= 0.55;
     if (p.kind === "pulsar") p.ws *= 1.45;
-    if (!cp && n >= 10 && rnd() < sd.moon) {
-      p.moon = { a: rnd() * TAU, w: (rnd() < 0.5 ? -1 : 1) * p.ws * 0.55 };
+    if (!cp && n >= 10 && !prev.moon && rnd() < sd.moon) {   // art arda iki aylı gezegen yok
+      p.moon = { a: rnd() * TAU, w: (rnd() < 0.5 ? -1 : 1) * p.ws * 0.4 };
     }
     if (!cp && rnd() < sd.drift) {
       var amp = 30 + rnd() * 40, m2 = p.R + amp + 8;
@@ -1670,7 +1678,7 @@
                vx: 0, vy: 0, ft: 0, ot: 0, grace: 0, quick: false, trail: [] };
     run = { score: 0, combo: 1, maxCombo: 1, coins: 0, planets: 0, continued: false, doubled: false, counted: false, reason: "void",
             sector: sectorOf(startN), cp: startN ? { n: startN, score: 0, planets: 0 } : null, cpUsed: 0, banner: false,
-            shield: false, magnetT: 0, x2T: 0, rid: Date.now() };
+            shield: skin.perk === "shield", magnetT: 0, x2T: 0, rid: Date.now() };
     camY = p0.y - H * 0.68;
     ensureAhead(camY);
     updateHud(true);
@@ -1736,12 +1744,12 @@
   }
 
   // 0 = güvenli, 0..1 = çöküş uyarısı (3. tur), 1 = çöktü
-  function orbitWarn(q, ot) { var turn = TAU / q.ws; return clamp((ot - 2 * turn) / turn, 0, 1); }
+  function orbitWarn(q, ot) { var turn = TAU / q.ws; return clamp((ot - (skin.perk === "orbit" ? 3 : 2) * turn) / turn, 0, 1); }
 
   function launch() {
     var P = player;
     if (phase !== "play" || P.st !== "orbit") return;
-    P.quick = P.ot < Math.PI / P.p.ws;          // yarım turdan önce atladıysa "hızlı" -> kombo sürer
+    P.quick = P.ot < (skin.perk === "combo" ? 1.5 : 1) * Math.PI / P.p.ws;          // yarım turdan önce atladıysa "hızlı" -> kombo sürer
     P.vx = -Math.sin(P.a) * P.dir * FLY;
     P.vy = Math.cos(P.a) * P.dir * FLY;
     P.from = P.p; P.p = null; P.st = "fly"; P.ft = 0;
@@ -1851,7 +1859,10 @@
         q = world.planets[i];
         if (!q.moon) continue;
         var mx = q.x + Math.cos(q.moon.a) * q.R, my = q.y + Math.sin(q.moon.a) * q.R;
-        if (Math.hypot(mx - P.x, my - P.y) < 15) { die("moon"); return; }
+        if (Math.hypot(mx - P.x, my - P.y) < 12) {
+          if (skin.perk !== "moon") { die("moon"); return; }
+          q.moon = null; burst(mx, my, "#d9d4e6", 18, 180); Sound.land(1, true); Haptic.medium();   // Süpernova ayı parçalar
+        }
       }
     }
     P.trail.push(P.x, P.y);
@@ -1902,15 +1913,17 @@
   }
 
   function takeCoin(c) {
-    c.taken = true; run.coins++; addCoins(1); Missions.add("stars", 1);
-    Sound.coin(); burst(c.x, c.y, "#ffd34d", 8, 120); floatText(c.x, c.y - 10, "+1", "#ffd34d", 15);
+    var n = skin.perk === "double" ? 2 : 1;
+    c.taken = true; run.coins += n; addCoins(n); Missions.add("stars", n);
+    Sound.coin(); burst(c.x, c.y, "#ffd34d", 8, 120); floatText(c.x, c.y - 10, "+" + n, "#ffd34d", 15);
   }
 
   function takePower(pw) {
     pw.taken = true;
+    var k = skin.perk === "long" ? 1.5 : 1;
     if (pw.type === "shield") run.shield = true;
-    else if (pw.type === "magnet") run.magnetT = POWERS.magnet.dur;
-    else run.x2T = POWERS.x2.dur;
+    else if (pw.type === "magnet") run.magnetT = POWERS.magnet.dur * k;
+    else run.x2T = POWERS.x2.dur * k;
     var col = POWERS[pw.type].col;
     floatText(pw.x, pw.y - 18, t("power." + pw.type), col, 18);
     burst(pw.x, pw.y, col, 20, 180);
@@ -1923,14 +1936,15 @@
   function updatePowers(dt) {
     if (phase !== "play") return;
     if (run.x2T > 0) run.x2T = Math.max(0, run.x2T - dt);
-    if (run.magnetT > 0) {
-      run.magnetT = Math.max(0, run.magnetT - dt);
+    var reach = run.magnetT > 0 ? 190 : skin.perk === "pull" ? 80 : 0;   // Zümrüt: kısa menzilli kalıcı çekim
+    run.magnetT = Math.max(0, run.magnetT - dt);
+    if (reach) {
       for (var i = 0; i < world.coins.length; i++) {
         var c = world.coins[i];
         if (c.taken) continue;
         var dx = player.x - c.x, dy = player.y - c.y, d = Math.hypot(dx, dy);
         if (d < 22) takeCoin(c);
-        else if (d < 190) { c.x += dx / d * 420 * dt; c.y += dy / d * 420 * dt; }
+        else if (d < reach) { c.x += dx / d * 420 * dt; c.y += dy / d * 420 * dt; }
       }
     }
     updatePowersHud();
@@ -2451,7 +2465,8 @@
                  : '<span class="price' + (short ? " dim" : "") + '"><svg class="ic"><use href="#i-star"/></svg>' + s.price + "</span>" +
                    (short ? '<span class="need" aria-hidden="true"><i style="width:' + Math.round(wallet / s.price * 100) + '%"></i></span>' : "");
       b.innerHTML = '<span class="dot" style="background:' + dot + ";box-shadow:0 0 22px " + hexA(s.col, 0.45) + '"></span>' +
-                    '<span class="name">' + t("skin." + s.id) + "</span>" + status;
+                    '<span class="name">' + t("skin." + s.id) + "</span>" +
+                    '<span class="perk">' + t("perk." + (s.perk || "none")) + "</span>" + status;
       b.setAttribute("aria-pressed", eq ? "true" : "false");
       b.onclick = function () { pickSkin(s); };
       g.appendChild(b);
@@ -2908,6 +2923,15 @@
   if (location.hash === "#selftest") {
     var fails = [];
     var ok = function (c, m) { if (!c) fails.push(m); };
+    // kostüm özellikleri: çökme süresi, başlangıç kalkanı, ay bağışıklığı (kayıtlı kostümden bağımsız sına)
+    var tq0 = { ws: Math.PI }, perkSkin = function (id) { skin = SKINS.filter(function (s) { return s.id === id; })[0]; };
+    perkSkin("ember"); ok(orbitWarn(tq0, 7) === 0.5, "Kor: çökme 1 tur gecikmeli değil");
+    perkSkin("rose"); newWorld(); ok(run.shield, "Gül: oyuna kalkanla başlamadı");
+    perkSkin("void"); newWorld(); phase = "play";
+    world.planets[1].moon = { a: 0, w: 0 }; player.grace = 0; player.a = 0; player.dir = 0;
+    player.p = world.planets[1]; stepPlayer(0);
+    ok(phase === "play" && !world.planets[1].moon, "Süpernova: ay parçalanmadı");
+    perkSkin("nova"); newWorld();
     // teğet fırlatma: a=0, dir=+1 -> +y yönünde
     phase = "play"; player.a = 0; player.dir = 1; player.ot = 0;
     launch();
