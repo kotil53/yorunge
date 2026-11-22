@@ -166,6 +166,12 @@
   /* alınabilir: altın kenar; para yetmiyor: soluk + birikim çubuğu */
   .skin.buyable { border-color: rgba(255, 211, 77, .6); box-shadow: 0 0 18px rgba(255, 211, 77, .16); }
   .skin.locked .dot { filter: grayscale(.6) brightness(.7); }
+  .skin-wrap { display: flex; flex-direction: column; gap: var(--s2); }
+  .skin-wrap .skin { flex: 1; }
+  .perk-toggle { min-height: 40px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .06);
+    color: var(--muted); font: inherit; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; }
+  .perk-toggle.on { color: #0b0f2a; background: #5ef2ff; border-color: #5ef2ff; }
+  .perk-toggle:focus-visible { outline: 2px solid #5ef2ff; outline-offset: 2px; }
   .skin .need { width: 70%; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
   .skin .need i { display: block; height: 100%; border-radius: 2px; background: var(--gold); }
   .to-best { margin: 0 0 var(--s3); color: var(--muted); font-size: var(--fs-sm); font-weight: 700; }
@@ -277,6 +283,9 @@
   #hudCombo.pop { animation: pop 240ms var(--ease); }
   #tut { position: fixed; z-index: 9; left: 0; right: 0; bottom: calc(var(--sb) + 64px); text-align: center; pointer-events: none;
     font-weight: 800; font-size: var(--fs-lg); text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
+  #tapResume { position: fixed; z-index: 9; left: 0; right: 0; bottom: calc(var(--sb) + 64px); text-align: center; pointer-events: none;
+    font-weight: 800; font-size: var(--fs-lg); text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
+  #tapResume p { margin: var(--s1) var(--s4); }
   #tut p { margin: var(--s1) var(--s4); }
   #tut .muted { font-size: var(--fs-md); font-weight: 600; }
   #tut:not(.go) .tap-ring { visibility: hidden; }
@@ -399,6 +408,7 @@
   <button class="icon-sq" id="btnPause" data-i18n-aria="hud.pause"><svg class="ic"><use href="#i-pause"/></svg></button>
 </div>
 <div id="sectorBanner" hidden aria-live="polite"><small id="sbTop"></small><b id="sbName"></b></div>
+<div id="tapResume" hidden aria-live="polite"><div class="tap-ring"></div><p data-i18n="resume.tap"></p></div>
 <div id="tut" hidden><div class="tap-ring"></div><p id="tutA"></p><p class="muted" id="tutB"></p></div>
 
 <!-- Ana menü -->
@@ -710,10 +720,11 @@
       "home.start": "BAŞLANGIÇ", "home.prevSector": "Önceki sektör", "home.nextSector": "Sonraki sektör",
       "power.shield": "Kalkan!", "power.magnet": "Mıknatıs!", "power.x2": "2x Puan!", "shield.saved": "Kalkan seni kurtardı!",
       "combo.quick": "Hızlı!", "combo.perfect": "Kusursuz!", "combo.legend": "Efsane!",
-      "shop.title": "Mağaza", "shop.note": "Yıldız topla, kuyruklu yıldızına yeni görünüm ve özellik kazan.",
+      "shop.title": "Mağaza", "shop.note": "Yıldız topla, kuyruklu yıldızına yeni görünüm ve özellik kazan. Aldığın yıldızlardan en çok 3 özelliği aynı anda açabilirsin.",
       "perk.none": "Özellik yok", "perk.orbit": "Yörünge 1 tur geç çöker", "perk.pull": "Yakındaki yıldızları çeker",
       "perk.long": "Güçlendirmeler %50 uzun sürer", "perk.shield": "Oyuna kalkanla başlar", "perk.double": "Her yıldız 2 sayılır",
       "perk.combo": "Kombo için daha çok süre", "perk.moon": "Aylar zarar vermez, parçalanır",
+      "resume.tap": "Hazır olunca dokun", "shop.perkOn": "Özellik açık", "shop.perkOff": "Özelliği aç", "shop.slotsFull": "En çok {n} özellik açık olabilir, önce birini kapat",
       "shop.equip": "Kullan", "shop.equipped": "Kullanılıyor", "shop.need": "{n} yıldız daha gerek",
       "shop.buyQ": "{name} alınsın mı?", "shop.buyText": "{n} yıldız harcanacak.", "shop.buy": "Satın al",
       "skin.nova": "Nova", "skin.ember": "Kor", "skin.emerald": "Zümrüt", "skin.royal": "Kraliyet",
@@ -765,10 +776,11 @@
       "home.start": "START AT", "home.prevSector": "Previous sector", "home.nextSector": "Next sector",
       "power.shield": "Shield!", "power.magnet": "Magnet!", "power.x2": "2x Score!", "shield.saved": "Shield saved you!",
       "combo.quick": "Quick!", "combo.perfect": "Perfect!", "combo.legend": "Legendary!",
-      "shop.title": "Shop", "shop.note": "Collect stars and unlock new looks and perks for your comet.",
+      "shop.title": "Shop", "shop.note": "Collect stars and unlock new looks and perks for your comet. You can turn on up to 3 perks from stars you own.",
       "perk.none": "No perk", "perk.orbit": "Orbit decays 1 lap later", "perk.pull": "Pulls in nearby stars",
       "perk.long": "Power-ups last 50% longer", "perk.shield": "Start with a shield", "perk.double": "Every star counts twice",
       "perk.combo": "More time to keep combos", "perk.moon": "Moons shatter instead of killing",
+      "resume.tap": "Tap when ready", "shop.perkOn": "Perk on", "shop.perkOff": "Turn perk on", "shop.slotsFull": "Up to {n} perks can be on, turn one off first",
       "shop.equip": "Equip", "shop.equipped": "Equipped", "shop.need": "{n} more stars",
       "shop.buyQ": "Buy {name}?", "shop.buyText": "This costs {n} stars.", "shop.buy": "Buy",
       "skin.nova": "Nova", "skin.ember": "Ember", "skin.emerald": "Emerald", "skin.royal": "Royal",
@@ -1452,6 +1464,17 @@
   var owned = Store.get("skins", ["nova"]);
   var skin = SKINS[0];
   (function () { var id = Store.get("skin", "nova"); for (var i = 0; i < SKINS.length; i++) if (SKINS[i].id === id) skin = SKINS[i]; })();
+  // alınan yıldızlardan en çok PERK_SLOTS tanesinin özelliği açık; görünüm (skin) bundan bağımsız
+  var PERK_SLOTS = 3;
+  var perksOn = Store.get("perks", null) || (skin.perk ? [skin.id] : []);   // eski kayıt: takılı yıldızın özelliği açık başlar
+  function hasPerk(p) { return SKINS.some(function (s) { return s.perk === p && owned.indexOf(s.id) >= 0 && perksOn.indexOf(s.id) >= 0; }); }
+  function togglePerk(s) {
+    var i = perksOn.indexOf(s.id);
+    if (i >= 0) perksOn.splice(i, 1);
+    else if (perksOn.length >= PERK_SLOTS) { showToast(t("shop.slotsFull", { n: PERK_SLOTS })); Haptic.error(); return; }
+    else perksOn.push(s.id);
+    Store.set("perks", perksOn); Sound.click(); Haptic.light(); renderShop();
+  }
   function skinColor(i) { return skin.rainbow ? "hsl(" + ((time * 220 + i * 14) % 360) + ",100%,65%)" : skin.col; }
 
   // Günlük görevler: her gün tarih tohumuyla aynı 3 görev (cihazda), gece yarısı yenilenir
@@ -1676,9 +1699,10 @@
     var p0 = world.planets[0];
     player = { st: "orbit", p: p0, from: null, last: p0, a: -Math.PI / 2, dir: 1, x: p0.x, y: p0.y - p0.R,
                vx: 0, vy: 0, ft: 0, ot: 0, grace: 0, quick: false, trail: [] };
-    run = { score: 0, combo: 1, maxCombo: 1, coins: 0, planets: 0, continued: false, doubled: false, counted: false, reason: "void",
-            sector: sectorOf(startN), cp: startN ? { n: startN, score: 0, planets: 0 } : null, cpUsed: 0, banner: false,
-            shield: skin.perk === "shield", magnetT: 0, x2T: 0, rid: Date.now() };
+    var cpScore = startN ? Store.get("cp.score." + sectorOf(startN), 0) : 0;   // kontrol noktasındaki puandan devam
+    run = { score: cpScore, combo: 1, maxCombo: 1, coins: 0, planets: startN, continued: false, doubled: false, counted: false, reason: "void",
+            sector: sectorOf(startN), cp: startN ? { n: startN, score: cpScore, planets: startN } : null, cpUsed: 0, banner: false,
+            shield: hasPerk("shield"), magnetT: 0, x2T: 0, rid: Date.now() };
     camY = p0.y - H * 0.68;
     ensureAhead(camY);
     updateHud(true);
@@ -1695,8 +1719,7 @@
     run.score = keep.cp.score; run.planets = keep.cp.planets; run.coins = keep.coins; run.maxCombo = keep.maxCombo;
     run.cp = keep.cp; run.cpUsed = keep.cpUsed + 1; run.rid = keep.rid; run.continued = keep.continued; run.doubled = keep.doubled;
     updateHud(true);
-    phase = "idle";
-    startPlay();
+    waitTap();
   }
 
   // Son gezegenin yörüngesine güvenle geri koy (reklamlı devam + kalkan)
@@ -1722,8 +1745,14 @@
     world.powers = world.powers.filter(function (w) { return w.y < lim && !w.taken; });
   }
 
+  // Devam/kontrol noktası sonrası: oyun donuk, oyuncu hazır olunca dokunur (ilk dokunuş fırlatmaz)
+  function waitTap() {
+    phase = "idle"; showScreen(null);
+    $("tapResume").hidden = false;
+  }
   function startPlay() {
     if (phase === "play") return;
+    $("tapResume").hidden = true;
     Sound.ensure(); Sound.startMusic();
     phase = "play";
     player.ot = 0; player.warned = false;
@@ -1744,12 +1773,12 @@
   }
 
   // 0 = güvenli, 0..1 = çöküş uyarısı (3. tur), 1 = çöktü
-  function orbitWarn(q, ot) { var turn = TAU / q.ws; return clamp((ot - (skin.perk === "orbit" ? 3 : 2) * turn) / turn, 0, 1); }
+  function orbitWarn(q, ot) { var turn = TAU / q.ws; return clamp((ot - (hasPerk("orbit") ? 3 : 2) * turn) / turn, 0, 1); }
 
   function launch() {
     var P = player;
     if (phase !== "play" || P.st !== "orbit") return;
-    P.quick = P.ot < (skin.perk === "combo" ? 1.5 : 1) * Math.PI / P.p.ws;          // yarım turdan önce atladıysa "hızlı" -> kombo sürer
+    P.quick = P.ot < (hasPerk("combo") ? 1.5 : 1) * Math.PI / P.p.ws;          // yarım turdan önce atladıysa "hızlı" -> kombo sürer
     P.vx = -Math.sin(P.a) * P.dir * FLY;
     P.vy = Math.cos(P.a) * P.dir * FLY;
     P.from = P.p; P.p = null; P.st = "fly"; P.ft = 0;
@@ -1767,9 +1796,12 @@
     q.pulse = 1;
     if (q.visited) { Sound.land(1, true); return; }
     q.visited = true;
-    run.planets++;
+    // atlanan gezegenler: her biri +1 bonus (x2 açıkken +2)
+    var skipped = 0;
+    world.planets.forEach(function (o) { if (!o.visited && o.n < q.n) { o.visited = true; skipped++; } });
+    run.planets += 1 + skipped;
     run.combo = P.quick ? Math.min(run.combo + 1, 5) : 1;
-    var gain = run.combo * (run.x2T > 0 ? 2 : 1) + (q.kind === "pulsar" ? 1 : 0);
+    var gain = (run.combo + skipped) * (run.x2T > 0 ? 2 : 1) + (q.kind === "pulsar" ? 1 : 0);
     run.score += gain;
     if (run.combo > run.maxCombo) run.maxCombo = run.combo;
     floatText(q.x, q.y - q.R - 14, "+" + gain, run.combo > 1 || run.x2T > 0 ? "#ffd34d" : "#ffffff", 20 + run.combo * 2);
@@ -1793,7 +1825,7 @@
       if (tutStep === 3) { Store.set("tut", true); showToast(t("tut.done")); }
       setTut();
     }
-    Missions.add("planets", 1);
+    Missions.add("planets", 1 + skipped);
     Missions.add("score", run.score);
     Missions.add("combo", run.combo);
     updateHud();
@@ -1804,6 +1836,7 @@
     run.cp = { n: q.n, score: run.score, planets: run.planets };
     run.sector = s;
     if (s > Store.get("cp.max", 0)) Store.set("cp.max", s);
+    if (run.score > Store.get("cp.score." + s, 0)) Store.set("cp.score." + s, run.score);
     showSectorBanner(s, true);
     Sound.checkpoint(); Haptic.success();
     burst(q.x, q.y, "#ffd34d", 36, 260);
@@ -1860,7 +1893,7 @@
         if (!q.moon) continue;
         var mx = q.x + Math.cos(q.moon.a) * q.R, my = q.y + Math.sin(q.moon.a) * q.R;
         if (Math.hypot(mx - P.x, my - P.y) < 12) {
-          if (skin.perk !== "moon") { die("moon"); return; }
+          if (!hasPerk("moon")) { die("moon"); return; }
           q.moon = null; burst(mx, my, "#d9d4e6", 18, 180); Sound.land(1, true); Haptic.medium();   // Süpernova ayı parçalar
         }
       }
@@ -1913,14 +1946,14 @@
   }
 
   function takeCoin(c) {
-    var n = skin.perk === "double" ? 2 : 1;
+    var n = hasPerk("double") ? 2 : 1;
     c.taken = true; run.coins += n; addCoins(n); Missions.add("stars", n);
     Sound.coin(); burst(c.x, c.y, "#ffd34d", 8, 120); floatText(c.x, c.y - 10, "+" + n, "#ffd34d", 15);
   }
 
   function takePower(pw) {
     pw.taken = true;
-    var k = skin.perk === "long" ? 1.5 : 1;
+    var k = hasPerk("long") ? 1.5 : 1;
     if (pw.type === "shield") run.shield = true;
     else if (pw.type === "magnet") run.magnetT = POWERS.magnet.dur * k;
     else run.x2T = POWERS.x2.dur * k;
@@ -1936,7 +1969,7 @@
   function updatePowers(dt) {
     if (phase !== "play") return;
     if (run.x2T > 0) run.x2T = Math.max(0, run.x2T - dt);
-    var reach = run.magnetT > 0 ? 190 : skin.perk === "pull" ? 80 : 0;   // Zümrüt: kısa menzilli kalıcı çekim
+    var reach = run.magnetT > 0 ? 190 : hasPerk("pull") ? 80 : 0;   // Zümrüt: kısa menzilli kalıcı çekim
     run.magnetT = Math.max(0, run.magnetT - dt);
     if (reach) {
       for (var i = 0; i < world.coins.length; i++) {
@@ -2388,6 +2421,7 @@
   function showScreen(name) {
     for (var i = 0; i < SCREENS.length; i++) $(SCREENS[i]).classList.toggle("on", SCREENS[i] === name);
     screenNow = name;
+    if (name !== null && name !== "pause") $("tapResume").hidden = true;
     $("hud").hidden = !(name === null || name === "pause");
     Ads.banner(name === "home" || name === "shop" || name === "missions" || name === "rank" || name === "settings" || name === "over");
     if (name === "home") renderHome();
@@ -2469,7 +2503,16 @@
                     '<span class="perk">' + t("perk." + (s.perk || "none")) + "</span>" + status;
       b.setAttribute("aria-pressed", eq ? "true" : "false");
       b.onclick = function () { pickSkin(s); };
-      g.appendChild(b);
+      var w = document.createElement("div"); w.className = "skin-wrap"; w.appendChild(b);
+      if (has && s.perk) {
+        var on = perksOn.indexOf(s.id) >= 0, pb = document.createElement("button");
+        pb.className = "perk-toggle" + (on ? " on" : "");
+        pb.textContent = t(on ? "shop.perkOn" : "shop.perkOff");
+        pb.setAttribute("aria-pressed", on ? "true" : "false");
+        pb.onclick = function () { togglePerk(s); };
+        w.appendChild(pb);
+      }
+      g.appendChild(w);
     });
   }
   function pickSkin(s) {
@@ -2480,6 +2523,7 @@
       if (wallet < s.price) return;
       addCoins(-s.price);
       owned.push(s.id); Store.set("skins", owned);
+      if (s.perk && perksOn.length < PERK_SLOTS) { perksOn.push(s.id); Store.set("perks", perksOn); }
       skin = s; Store.set("skin", s.id);
       Sound.fanfare(); Haptic.success();
       showToast(t("toast.bought", { name: t("skin." + s.id) }));
@@ -2725,8 +2769,7 @@
   function continueRun() {
     run.continued = true;
     rescue();
-    phase = "idle";
-    startPlay();
+    waitTap();
   }
 
   // Oyun sonundan çıkış. Geçiş reklamı gösterilirse oyun reklam kapanınca başlar.
@@ -2924,7 +2967,7 @@
     var fails = [];
     var ok = function (c, m) { if (!c) fails.push(m); };
     // kostüm özellikleri: çökme süresi, başlangıç kalkanı, ay bağışıklığı (kayıtlı kostümden bağımsız sına)
-    var tq0 = { ws: Math.PI }, perkSkin = function (id) { skin = SKINS.filter(function (s) { return s.id === id; })[0]; };
+    var tq0 = { ws: Math.PI }, perkSkin = function (id) { skin = SKINS.filter(function (s) { return s.id === id; })[0]; owned.length = 0; owned.push(id); perksOn.length = 0; perksOn.push(id); }, keepOwned = owned.slice(), keepPerks = perksOn.slice();
     perkSkin("ember"); ok(orbitWarn(tq0, 7) === 0.5, "Kor: çökme 1 tur gecikmeli değil");
     perkSkin("rose"); newWorld(); ok(run.shield, "Gül: oyuna kalkanla başlamadı");
     perkSkin("void"); newWorld(); phase = "play";
@@ -2932,6 +2975,12 @@
     player.p = world.planets[1]; stepPlayer(0);
     ok(phase === "play" && !world.planets[1].moon, "Süpernova: ay parçalanmadı");
     perkSkin("nova"); newWorld();
+    owned.push("ember", "rose", "void", "gold"); perksOn.length = 0; perksOn.push("ember", "rose");
+    ok(orbitWarn(tq0, 7) === 0.5 && hasPerk("shield") && !hasPerk("moon"), "açık özellikler birlikte çalışmıyor ya da kapalı özellik çalışıyor");
+    togglePerk(SKINS.filter(function (s) { return s.id === "void"; })[0]); togglePerk(SKINS.filter(function (s) { return s.id === "gold"; })[0]);
+    ok(perksOn.length === 3 && hasPerk("moon") && !hasPerk("double"), "özellik slotu 3 ile sınırlı değil");
+    perksOn.length = 0;
+    owned.length = 0; owned.push("nova"); newWorld();
     // teğet fırlatma: a=0, dir=+1 -> +y yönünde
     phase = "play"; player.a = 0; player.dir = 1; player.ot = 0;
     launch();
@@ -2943,6 +2992,10 @@
     ok(player.dir === 1 && player.p === q && run.combo === 2 && run.score === 2, "yakalama yönü/kombo puanı hatalı");
     player.vx = 0; player.vy = -FLY; player.st = "fly"; capture(q, q.R, 0);
     ok(player.dir === -1 && run.score === 2, "ters yakalama yönü ya da ziyaret edilmiş gezegene tekrar puan");
+    // 2. gezegen atlanıp 3.'ye konunca atlanan için +1 bonus
+    var q3 = world.planets[3]; world.planets[2].visited = false; q3.visited = false; q3.kind = "normal";
+    player.quick = false; player.st = "fly"; run.x2T = 0; capture(q3, q3.R, 0);
+    ok(run.score === 4 && world.planets[2].visited, "atlanan gezegene bonus verilmedi");
     // öğretici nişanı: a=0, dir=+1 -> +y yönüne fırlar
     var aimP = { x: 0, y: 0, a: 0, dir: 1 };
     ok(aimHits(aimP, { x: 0, y: 150, R: 40 }) && !aimHits(aimP, { x: 120, y: 150, R: 40 }) && !aimHits(aimP, { x: 0, y: -150, R: 40 }), "öğretici nişanı hatalı");
@@ -2980,7 +3033,10 @@
     // sektör / kontrol noktası
     ok(sectorOf(19) === 0 && sectorOf(20) === 1 && sectorOf(45) === 2, "sektör hesabı hatalı");
     ok(sectorDef(9) === sectorDef(9) && sectorDef(9).id === "deep", "derin uzay sektörü tutarsız");
+    var keepCp = Store.get("cp.score.2", 0); Store.set("cp.score.2", 33);
     newWorld(40);
+    ok(run.score === 33 && run.cp.score === 33, "kontrol noktasından başlayınca puan sıfırlandı");
+    Store.set("cp.score.2", keepCp);
     ok(world.planets[0].n === 40 && run.cp && run.cp.n === 40 && run.sector === 2 && world.planets[0].visited, "kontrol noktasından başlama hatalı");
     ok(world.planets.some(function (p) { return p.n === 60 && p.cp; }) || world.planets[world.planets.length - 1].n < 60, "kontrol noktası işareti yok");
     // kalkan: ölümü bir kez önler
@@ -2988,6 +3044,8 @@
     ok(phase === "play" && !run.shield && player.st === "orbit", "kalkan ölümü önlemedi");
     die("moon");
     ok(phase === "dead", "kalkansız ölüm olmadı");
+    phase = "dead"; run.continued = false; continueRun(); ok(phase === "idle" && !$("tapResume").hidden, "devamda bekleme yok"); startPlay(); ok(phase === "play" && $("tapResume").hidden && player.st === "orbit", "dokununca devam etmedi");
+    owned.length = 0; owned.push.apply(owned, keepOwned); perksOn.length = 0; perksOn.push.apply(perksOn, keepPerks); Store.set("perks", perksOn);
     newWorld(); phase = "idle";
     console.log(fails.length ? "SELFTEST FAIL: " + fails.join("; ") : "SELFTEST OK");
     document.title = fails.length ? "FAIL" : "OK";
