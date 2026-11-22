@@ -1414,7 +1414,11 @@
     // Oyun sonu: gönderilmemiş rekor varsa sessizce gönderir; çevrimdışıysa sonraki oyunda yeniden dener
     sync: function () {
       if (!this.on() || !this.name() || best <= Store.get("online.sent", 0)) return Promise.resolve();
-      return this.submit(this.name()).catch(function () {});
+      var self = this;
+      return this.submit(this.name()).then(function (r) {
+        // Sunucu aynı oyuncudan 3 sn içinde ikinci gönderimi "rate" ile reddeder; bir kez bekleyip yeniden dene
+        if (r && r.err === "rate") return new Promise(function (ok) { setTimeout(ok, 3500); }).then(function () { return self.submit(self.name()); });
+      }).catch(function () {});
     },
     // Oyuncunun çevresi: 3 üstü + kendisi + 2 altı (sunucu "me" bayrağıyla döner)
     around: function () { return this._rpc("around_me", { p_id: this.id() }); },
@@ -1425,6 +1429,7 @@
     }
   };
 
+  Online.sync();   // açılışta: önceki oturumda çevrimdışı kalan rekoru gönder
   // Yerel sıralama: en iyi 10 oyun. Devam ve kontrol noktası aynı oyunu (rid) sürdürür, tek satır kalır.
   // shortcut: yalnızca bu cihaz; çevrimiçi tablo için Play Games / Game Center (mağaza hesapları) gerekir
   var Ranks = {
@@ -1866,7 +1871,14 @@
     shake = 14;
     wave(P.x, P.y, "#ff3d6e", 170, 8); slowmo(0.3, 0.5);
     if (!reduceMotion) { flash.a = 0.3; flash.c = "255,61,110"; }
+    run.bestAtDeath = keepBest();   // rekor ölür ölmez kaydedilir; oyun sonu ekranından önce uygulama kapanırsa kaybolmasın
     setTimeout(showGameOver, 950);
+  }
+  // Oyunun puanı rekoru geçtiyse kaydeder; geçtiyse true
+  function keepBest() {
+    if (!run || run.score <= best) return false;
+    best = run.score; Store.set("best", best); Store.set("bestSector", run.sector);
+    return true;
   }
 
   function stepPlayer(dt) {
@@ -2573,7 +2585,7 @@
     if (!Online.name()) showNameCard(""); else $("nameCard").hidden = true;
     worldState("rank.loading");
     var req = ++_worldReq;
-    Online.load().then(function (res) {
+    Online.sync().then(function () { return Online.load(); }).then(function (res) {
       if (req !== _worldReq || screenNow !== "rank") return;
       var top = res[0] || [], me = res[1] && res[1][0], ol = $("worldList"), seen = false;
       top.forEach(function (e) { var isMe = !!me && e.name === me.name; seen = seen || isMe; ol.appendChild(worldRow(e, isMe)); });
@@ -2686,8 +2698,8 @@
 
   function showGameOver() {
     if (phase !== "dead") return;
-    var isBest = run.score > best;
-    if (isBest) { best = run.score; Store.set("best", best); Store.set("bestSector", run.sector); Sound.fanfare(); }
+    var isBest = keepBest() || !!run.bestAtDeath;
+    if (isBest) Sound.fanfare();
     $("overWorld").hidden = true;
     if (Online.on() && Online.name()) Online.sync().then(function () { return Online.around(); }).then(renderOverWorld, function () {});
     if (!run.counted) {
@@ -2813,8 +2825,8 @@
   });
   bind("btnPause", pauseGame);
   bind("btnResume", resumeGame);
-  bind("btnRestart", function () { freshWorld(); phase = "idle"; startPlay(); });
-  bind("btnPauseMenu", function () { freshWorld(); phase = "idle"; showScreen("home"); Sound.startMusic(); });
+  bind("btnRestart", function () { keepBest(); Online.sync(); freshWorld(); phase = "idle"; startPlay(); });
+  bind("btnPauseMenu", function () { keepBest(); Online.sync(); freshWorld(); phase = "idle"; showScreen("home"); Sound.startMusic(); });
   bind("spPrev", function () { pickSector(-1); });
   bind("spNext", function () { pickSector(1); });
   bind("btnCheckpoint", function () { if (run.cpUsed) Ads.rewarded(restartFromCheckpoint); else restartFromCheckpoint(); });
@@ -2897,7 +2909,7 @@
   }
 
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { pauseGame(); Sound.stopMusic(); }
+    if (document.hidden) { pauseGame(); keepBest(); Sound.stopMusic(); }
     else if (phase !== "paused" && !intro.on) Sound.startMusic();
   });
   window.addEventListener("resize", layout);
@@ -3046,8 +3058,12 @@
     // kalkan: ölümü bir kez önler
     phase = "play"; run.shield = true; die("moon");
     ok(phase === "play" && !run.shield && player.st === "orbit", "kalkan ölümü önlemedi");
+    var best0 = best; run.score = best + 7;
     die("moon");
     ok(phase === "dead", "kalkansız ölüm olmadı");
+    ok(best === best0 + 7 && Store.get("best", 0) === best && run.bestAtDeath, "rekor ölür ölmez kaydedilmedi");
+    ok(!keepBest(), "aynı puan iki kez rekor sayıldı");
+    best = best0; Store.set("best", best0);
     phase = "dead"; run.continued = false; continueRun(); ok(phase === "idle" && !$("tapResume").hidden, "devamda bekleme yok"); startPlay(); ok(phase === "play" && $("tapResume").hidden && player.st === "orbit", "dokununca devam etmedi");
     owned.length = 0; owned.push.apply(owned, keepOwned); perksOn.length = 0; perksOn.push.apply(perksOn, keepPerks); Store.set("perks", perksOn);
     newWorld(); phase = "idle";
