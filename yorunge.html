@@ -1842,6 +1842,7 @@
     run.cp = { n: q.n, score: run.score, planets: run.planets };
     run.sector = s;
     if (s > Store.get("cp.max", 0)) Store.set("cp.max", s);
+    Store.set("startSector", s);                // menü en son ulaşılan sektörden başlatır
     showSectorBanner(s, true);
     Sound.checkpoint(); Haptic.success();
     burst(q.x, q.y, "#ffd34d", 36, 260);
