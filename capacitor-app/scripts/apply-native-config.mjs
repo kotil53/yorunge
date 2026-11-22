@@ -5,7 +5,7 @@
 // Yaptıkları (hepsi idempotent — ikinci kez çalıştırmak zararsız):
 //   1. AdMob native "APPLICATION_ID" — Android AndroidManifest.xml + iOS Info.plist
 //      (yoksa Android'de uygulama açılışta çöker)
-//   2. iOS: NSUserTrackingUsageDescription (ATT metni) + ITSAppUsesNonExemptEncryption=false
+//   2. iOS: (ATT yok, izleme beyanı yok) ITSAppUsesNonExemptEncryption=false
 //      (App Store "Missing Compliance" / ihracat şifreleme sorusu bir daha çıkmaz)
 //   3. Android: build.gradle içinde versionCode / versionName
 //   4. iOS: Podfile'a GoogleUserMessagingPlatform 2.6.0 sabiti (+ gerekiyorsa
@@ -36,7 +36,7 @@ const ADMOB_ANDROID = process.env.ADMOB_APP_ID_ANDROID || "ca-app-pub-3940256099
 const ADMOB_IOS     = process.env.ADMOB_APP_ID_IOS     || "ca-app-pub-3940256099942544~1458002511";
 const VERSION_CODE  = process.env.ANDROID_VERSION_CODE || "1";
 const VERSION_NAME  = process.env.APP_VERSION || pkg.version || "1.0.0";
-const ATT_TEXT      = "Reklamları ilgi alanlarınıza göre kişiselleştirmek için kullanılır.";
+
 
 let touched = 0;
 const log = (m) => { console.log("  " + m); touched++; };
@@ -112,12 +112,18 @@ const plist = join(root, "ios/App/App/Info.plist");
 patch(plist, (p) => {
   if (p.includes("GADApplicationIdentifier")) return p;
   const keys =
-    `\t<key>GADApplicationIdentifier</key>\n\t<string>${ADMOB_IOS}</string>\n` +
-    `\t<key>NSUserTrackingUsageDescription</key>\n\t<string>${ATT_TEXT}</string>\n`;
+    `\t<key>GADApplicationIdentifier</key>\n\t<string>${ADMOB_IOS}</string>\n`;
   const idx = p.lastIndexOf("</dict>");
   if (idx < 0) { console.warn("  ! Info.plist: </dict> bulunamadı"); return p; }
-  log(`Info.plist            +GADApplicationIdentifier (${ADMOB_IOS}) +ATT`);
+  log(`Info.plist            +GADApplicationIdentifier (${ADMOB_IOS})`);
   return p.slice(0, idx) + keys + p.slice(idx);
+});
+
+// İzleme yok -> ATT metni olmamalı (Apple 2.1: ATT var ama istek görünmüyor). Eski projelerden sil.
+patch(plist, (p) => {
+  const out = p.replace(/\s*<key>NSUserTrackingUsageDescription<\/key>\s*<string>[^<]*<\/string>/, "");
+  if (out !== p) log("Info.plist            -NSUserTrackingUsageDescription (izleme yok)");
+  return out;
 });
 
 // Oyun yalnız sistemin HTTPS'ini kullanıyor (özel şifreleme yok) -> ihracat uyumu

@@ -1185,8 +1185,8 @@
       var pack = ADS_CFG.TEST_MODE ? AD_UNITS.test : AD_UNITS.live;
       self._ids = pack[plat === "ios" ? "ios" : "android"] || pack.android;
 
-      var att = AdMob.requestTrackingAuthorization ? AdMob.requestTrackingAuthorization().catch(noop) : Promise.resolve();
-      att.then(function () {
+      // ATT yok: uygulama izleme yapmıyor (App Store gizlilik beyanı "izleme yok", Guideline 2.1)
+      Promise.resolve().then(function () {
         if (!AdMob.requestConsentInfo) return;
         return AdMob.requestConsentInfo().then(function (info) {
           if (info && info.isConsentFormAvailable && info.status === "REQUIRED" && AdMob.showConsentForm) {
