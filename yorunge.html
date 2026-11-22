@@ -1704,8 +1704,8 @@
     var p0 = world.planets[0];
     player = { st: "orbit", p: p0, from: null, last: p0, a: -Math.PI / 2, dir: 1, x: p0.x, y: p0.y - p0.R,
                vx: 0, vy: 0, ft: 0, ot: 0, grace: 0, quick: false, trail: [] };
-    // kontrol noktasındaki puandan devam; eski sürümde ulaşılan (kaydı olmayan) noktada rekordan devam
-    var cpScore = startN ? Store.get("cp.score." + sectorOf(startN), best) : 0;
+    // menüden sektör seçilince sabit başlangıç puanı (gezegen başına 1); kayıtlı/rekor puan taşınmaz, şişirme olmaz
+    var cpScore = startN;
     run = { score: cpScore, combo: 1, maxCombo: 1, coins: 0, planets: startN, continued: false, doubled: false, counted: false, reason: "void",
             sector: sectorOf(startN), cp: startN ? { n: startN, score: cpScore, planets: startN } : null, cpUsed: 0, banner: false,
             shield: hasPerk("shield"), magnetT: 0, x2T: 0, rid: Date.now() };
@@ -1842,7 +1842,6 @@
     run.cp = { n: q.n, score: run.score, planets: run.planets };
     run.sector = s;
     if (s > Store.get("cp.max", 0)) Store.set("cp.max", s);
-    if (run.score > Store.get("cp.score." + s, 0)) Store.set("cp.score." + s, run.score);
     showSectorBanner(s, true);
     Sound.checkpoint(); Haptic.success();
     burst(q.x, q.y, "#ffd34d", 36, 260);
@@ -3046,13 +3045,8 @@
     // sektör / kontrol noktası
     ok(sectorOf(19) === 0 && sectorOf(20) === 1 && sectorOf(45) === 2, "sektör hesabı hatalı");
     ok(sectorDef(9) === sectorDef(9) && sectorDef(9).id === "deep", "derin uzay sektörü tutarsız");
-    var keepCp = Store.get("cp.score.2", 0); Store.set("cp.score.2", 33);
     newWorld(40);
-    ok(run.score === 33 && run.cp.score === 33, "kontrol noktasından başlayınca puan sıfırlandı");
-    Store.set("cp.score.2", keepCp);
-    newWorld(999 * SECTOR_LEN);
-    ok(run.score === best && run.cp.score === best, "kaydı olmayan kontrol noktasında rekordan başlamadı");
-    newWorld(40);
+    ok(run.score === 40 && run.cp.score === 40, "sektörden başlayınca sabit puan verilmedi");
     ok(world.planets[0].n === 40 && run.cp && run.cp.n === 40 && run.sector === 2 && world.planets[0].visited, "kontrol noktasından başlama hatalı");
     ok(world.planets.some(function (p) { return p.n === 60 && p.cp; }) || world.planets[world.planets.length - 1].n < 60, "kontrol noktası işareti yok");
     // kalkan: ölümü bir kez önler
